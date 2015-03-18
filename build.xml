@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="TyrannyMMO" default="all" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+	<description>Builds all of the projects</description>
+
+	<property name="java.home" value="${myenv.JAVA_HOME}"/>
+	<property name="java.opts" value="${myenv.JAVA_OPTS}"/>
+
+	<!-- build, source, and packaging directories -->
+	<property name="tyranny.home.dir" value="${basedir}"/>
+	<property name="tyranny.libs.dir" value="${tyranny.home.dir}/lib"/>
+	<property name="tyranny.src.dir" value="${tyranny.home.dir}/source"/>
+	<property name="tyranny.build.dir" value="${tyranny.home.dir}/build"/>
+	<property name="tyranny.dist.dir" value="${tyranny.home.dir}/dist"/>
+
+	<property name="ant.home.dir" value="${tyranny.home.dir}/ant"/>
+	<property name="ant.lib.dir" value="${tyranny.home.dir}/antlib"/>
+
+	<path id="antlibs">
+		<fileset dir="${ant.lib.dir}" includes="**/*.jar"/>
+		<fileset dir="${tyranny.libs.dir}" includes="jaxb-impl*.jar"/>
+		<fileset dir="${tyranny.libs.dir}" includes="jaxb-api*.jar"/>
+	</path>
+
+	<import file="build-utils-config.xml"/>
+	<import file="build-utils-public.xml"/>
+
+	<import file="build-common.xml"/>
+	<import file="build-instrumentation.xml"/>
+	<import file="build-jme.xml" />
+	<import file="build-log-formatters.xml"/>
+	<import file="build-mongo.xml"/>
+	<import file="build-authserver.xml"/>
+	<import file="build-authserver-processors.xml"/>
+	<import file="build-authserver-boot.xml"/>
+	<import file="build-worldserver.xml"/>
+	<import file="build-worldserver-processors.xml"/>
+	<import file="build-worldserver-boot.xml"/>
+	<import file="build-client.xml" />
+	<import file="build-client-processors.xml"/>
+	<import file="build-client-launcher.xml"/>
+	<import file="build-tests.xml"/>
+	<import file="build-sonar.xml"/>
+
+	<!-- ============================== -->
+	<!-- Target and Macro Definitions   -->
+	<!-- ============================== -->
+
+	<!-- IVY RELATED TASKS -->
+	<property name="ivy.install.version" value="2.1.0-rc2" />
+	<condition property="ivy.home" value="${env.IVY_HOME}">
+		<isset property="env.IVY_HOME" />
+	</condition>
+	<property name="ivy.home" value="${user.home}/.ant" />
+	<property name="ivy.jar.dir" value="${ivy.home}/lib" />
+	<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar" />
+
+	<target name="download-ivy" unless="offline">
+		<mkdir dir="${ivy.jar.dir}"/>
+		<!-- download Ivy from web site so that it can be used even without any special installation -->
+		<get src="http://repo2.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
+	</target>
+
+	<target name="init-ivy" depends="download-ivy">
+		<!-- try to load ivy here from ivy home, in case the user has not already dropped
+              it into ant's lib dir (note that the latter copy will always take precedence).
+              We will not fail as long as local lib dir exists (it may be empty) and
+              ivy is in at least one of ant's lib dir or the local lib dir. -->
+		<path id="ivy.lib.path">
+			<fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+		</path>
+		<taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+	</target>
+
+
+	<target name="all" depends="dependencies,build,install"/>
+
+	<target name="dependencies" depends="init-ivy" description="Retrieve dependencies">
+		<mkdir dir="${tyranny.libs.dir}" />
+		<ivy:retrieve pattern="${tyranny.libs.dir}/[artifact]-[revision].[ext]" />
+		<!-- <retrieve_jme3/>  -->
+	</target>
+
+	<!-- ================================== -->
+	<!-- BUILD Target and Macro Definitions -->
+	<!-- ================================== -->
+	<target name="build">
+		<build_common/>
+		<build_instrumentation/>
+		<build_logformatters/>
+		<build_mongo/>
+		<build_authserver/>
+		<build_authserver_processors/>
+		<build_authserver_boot/>
+		<build_worldserver/>
+		<build_worldserver_processors/>
+		<build_worldserver_boot/>
+		<build_client/>
+		<build_client_processors/>
+		<build_client_launcher/>
+		<!-- <build_tests/> -->
+	</target>
+
+	<target name="build_common">
+		<build_common/>
+	</target>
+
+	<target name="build_instrumentation">
+		<build_instrumentation/>
+	</target>
+		
+	<target name="build_logformatters">
+		<build_logformatters/>
+	</target>
+
+	<target name="build_mongo">
+		<build_mongo/>
+	</target>
+
+	<target name="build_authserver">
+		<build_authserver/>
+	</target>
+
+	<target name="build_authserver_processors">
+		<build_authserver_processors/>
+	</target>
+
+	<target name="build_authserver_boot">
+		<build_authserver_boot/>
+	</target>
+
+	<target name="build_worldserver">
+		<build_worldserver/>
+	</target>
+
+	<target name="build_worldserver_processors">
+		<build_worldserver_processors/>
+	</target>
+
+	<target name="build_worldserver_boot">
+		<build_worldserver_boot/>
+	</target>
+
+	<target name="build_client">
+		<build_client/>
+	</target>
+
+	<target name="build_client_processors">
+		<build_client_processors/>
+	</target>
+
+	<target name="build_client_launcher">
+		<build_client_launcher/>
+	</target>
+
+	<target name="build_tests">
+		<build_tests/>
+	</target>
+
+	<!-- ================================== -->
+	<!-- CLEAN Target and Macro Definitions -->
+	<!-- ================================== -->
+
+	<target name="clean">
+		<clean_common/>
+		<clean_instrumentation/>
+		<clean_logformatters/>
+		<clean_mongo/>
+		<clean_authserver/>
+		<clean_authserver_processors/>
+		<clean_authserver_boot/>
+		<clean_worldserver/>
+		<clean_worldserver_processors/>
+		<clean_worldserver_boot/>
+		<clean_client/>
+		<clean_client_processors/>
+		<clean_client_launcher/>
+		<!-- <clean_tests/> -->
+	</target>
+
+	<target name="clean_common">
+		<clean_common/>
+	</target>
+
+	<target name="clean_instrumentation">
+		<clean_instrumentation/>
+	</target>
+		
+	<target name="clean_logformatters">
+		<clean_logformatters/>
+	</target>
+
+	<target name="clean_mongo">
+		<clean_mongo/>
+	</target>
+
+	<target name="clean_authserver">
+		<clean_authserver/>
+	</target>
+
+	<target name="clean_authserver_processors">
+		<clean_authserver_processors/>
+	</target>
+
+	<target name="clean_authserver_boot">
+		<clean_authserver_boot/>
+	</target>
+
+	<target name="clean_worldserver">
+		<clean_worldserver/>
+	</target>
+
+	<target name="clean_worldserver_processors">
+		<clean_worldserver_processors/>
+	</target>
+
+	<target name="clean_worldserver_boot">
+		<clean_worldserver_boot/>
+	</target>
+
+	<target name="clean_client">
+		<clean_client/>
+	</target>
+
+	<target name="clean_client_processors">
+		<clean_client_processors/>
+	</target>
+
+	<target name="clean_client_launcher">
+		<clean_client_launcher/>
+	</target>
+
+	<target name="clean_tests">
+		<clean_tests/>
+	</target>
+
+	<!-- ================================== -->
+	<!-- INSTALL Target and Macro Definitions -->
+	<!-- ================================== -->
+
+	<target name="install">
+		<install_authserver/>
+		<install_worldserver/>
+		<install_client/>
+	</target>
+
+	<target name="install_authserver">
+		<install_authserver/>
+	</target>
+
+	<target name="install_worldserver">
+		<install_worldserver/>
+	</target>
+
+	<target name="install_client">
+		<install_client/>
+	</target>
+		
+	<macrodef name="install_authserver">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Installing Tyranny-Authserver${line.separator}#${line.separator}" />
+
+			<mkdir dir="${tyranny.authserver.install.dir}" />
+			<mkdir dir="${tyranny.authserver.install.dir}/bin" />
+			<mkdir dir="${tyranny.authserver.install.dir}/conf" />
+			<mkdir dir="${tyranny.authserver.install.dir}/data" />
+			<mkdir dir="${tyranny.authserver.install.dir}/lib" />
+			<mkdir dir="${tyranny.authserver.install.dir}/processors" />
+			<mkdir dir="${tyranny.authserver.install.dir}/log" />
+
+			<copy todir="${tyranny.authserver.install.dir}/lib">
+				<fileset dir="${tyranny.libs.dir}">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.common.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.instrumentation.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.logformatters.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.mongo.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.authserver.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.authserver.install.dir}/processors">
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.authserver.processors.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.authserver.install.dir}/bin">
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.authserver.boot.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.authserver.install.dir}/bin">
+				<fileset dir="${tyranny.home.dir}/data">
+					<include name="*.sh"/>
+					<include name="*.bat"/>
+				</fileset>
+				<globmapper from="authserver_*" to="*"/>
+			</copy>
+
+			<chmod dir="${tyranny.authserver.install.dir}/bin" perm="ugo+rx" includes="**/*.sh"/>
+
+			<copy todir="${tyranny.authserver.install.dir}/data">
+				<fileset dir="${tyranny.home.dir}/data">
+					<include name="*.jks"/>
+				</fileset>
+			</copy>
+
+			<copy todir="${tyranny.authserver.install.dir}/conf">
+				<fileset dir="${tyranny.home.dir}/data">
+					<include name="logging.properties"/>
+					<include name="authserver.cfg*"/>
+				</fileset>
+			</copy>
+
+			<replace file="${tyranny.authserver.install.dir}/conf/logging.properties" token="%%LOGFILE%%" value="${tyranny.authserver.install.dir}/log/authserver.log"/>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="install_worldserver">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Installing Tyranny-Worldserver${line.separator}#${line.separator}" />
+
+			<mkdir dir="${tyranny.worldserver.install.dir}" />
+			<mkdir dir="${tyranny.worldserver.install.dir}/bin" />
+			<mkdir dir="${tyranny.worldserver.install.dir}/conf" />
+			<mkdir dir="${tyranny.worldserver.install.dir}/data" />
+			<mkdir dir="${tyranny.worldserver.install.dir}/lib" />
+			<mkdir dir="${tyranny.worldserver.install.dir}/processors" />
+			<mkdir dir="${tyranny.worldserver.install.dir}/log" />
+
+			<copy todir="${tyranny.worldserver.install.dir}/lib">
+				<fileset dir="${tyranny.libs.dir}">
+					<include name="**/*.jar"/>
+				</fileset>
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.common.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.instrumentation.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.logformatters.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.worldserver.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.worldserver.install.dir}/processors">
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.worldserver.processors.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.worldserver.install.dir}/bin">
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.worldserver.boot.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.worldserver.install.dir}/bin">
+				<fileset dir="${tyranny.home.dir}/data">
+					<include name="*.sh"/>
+					<include name="*.bat"/>
+				</fileset>
+				<globmapper from="worldserver_*" to="*"/>
+			</copy>
+
+			<chmod dir="${tyranny.worldserver.install.dir}/bin" perm="ugo+rx" includes="**/*.sh"/>
+
+			<copy todir="${tyranny.worldserver.install.dir}/data">
+				<fileset dir="${tyranny.home.dir}/data">
+					<include name="*.jks"/>
+				</fileset>
+			</copy>
+
+			<copy todir="${tyranny.worldserver.install.dir}/conf">
+				<fileset dir="${tyranny.home.dir}/data">
+					<include name="logging.properties"/>
+					<include name="worldserver.cfg*"/>
+				</fileset>
+			</copy>
+
+			<replace file="${tyranny.worldserver.install.dir}/conf/logging.properties" token="%%LOGFILE%%" value="${tyranny.worldserver.install.dir}/log/worldserver.log"/>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="install_client">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Installing Tyranny-Client${line.separator}#${line.separator}" />
+
+			<mkdir dir="${tyranny.client.install.dir}" />
+			<mkdir dir="${tyranny.client.install.dir}/bin" />
+			<mkdir dir="${tyranny.client.install.dir}/conf" />
+			<mkdir dir="${tyranny.client.install.dir}/data" />
+			<mkdir dir="${tyranny.client.install.dir}/lib" />
+			<mkdir dir="${tyranny.client.install.dir}/processors" />
+			<mkdir dir="${tyranny.client.install.dir}/log" />
+
+			<copy todir="${tyranny.client.install.dir}/lib">
+				<fileset dir="${tyranny.libs.dir}">
+					<include name="**/*.jar" />
+				</fileset>
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.common.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.instrumentation.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.logformatters.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.mina.jar.name}" />
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.client.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.client.install.dir}/processors">
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.client.processors.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.client.install.dir}/bin">
+				<fileset dir="${tyranny.dist.dir}" includes="${tyranny.client.launcher.jar.name}" />
+			</copy>
+
+			<copy todir="${tyranny.client.install.dir}/bin">
+				<fileset dir="${tyranny.home.dir}/data">
+					<include name="*.sh" />
+					<include name="*.bat" />
+				</fileset>
+				<globmapper from="client_*" to="*" />
+			</copy>
+
+			<chmod dir="${tyranny.client.install.dir}/bin" perm="ugo+rx" includes="**/*.sh" />
+
+			<copy todir="${tyranny.client.install.dir}/conf">
+				<fileset dir="${tyranny.home.dir}/data">
+					<include name="logging.properties" />
+				</fileset>
+			</copy>
+
+			<replace file="${tyranny.client.install.dir}/conf/logging.properties" token="%%LOGFILE%%" value="${tyranny.client.install.dir}/log/client.log" />
+		</sequential>
+	</macrodef>
+
+	<!-- ================================== -->
+	<!-- TEST Target and Macro Definitions -->
+	<!-- ================================== -->
+
+	<target name="run_tests">
+		<run_test_group groups="db" loglevel="2" />
+	</target>
+
+	<macrodef name="run_test_group">
+		<attribute name="groups" default="*" />
+		<attribute name="loglevel" default="2" />
+		<sequential>
+			<taskdef resource="testngtasks" classpath="${tyranny.libs.dir}/testng-6.4.jar" />
+			<testng haltOnFailure="true" verbose="@{loglevel}" groups="@{groups}">
+				<jvmarg value="-Xmx2048m" />
+				<classpath>
+					<fileset dir="${tyranny.libs.dir}">
+						<include name="*.jar" />
+					</fileset>
+					<fileset dir="${tyranny.dist.dir}">
+						<include name="${tyranny.common.jar.name}"/>
+					</fileset>
+					<pathelement path="${tyranny.tests.build.dir}"/>
+				</classpath>
+				<classfileset dir="${tyranny.tests.build.dir}" includes="**/*.class"/>
+			</testng>
+		</sequential>
+	</macrodef>
+</project>

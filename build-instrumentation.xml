@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="Tyranny-Instrumentation">
+
+	<!-- ============================== -->
+	<!-- Property Definitions           -->
+	<!-- ============================== -->
+	<property name="tyranny.instrumentation.src.dir" value="${tyranny.src.dir}/instrumentation/main/java"/>
+	<property name="tyranny.instrumentation.build.dir" value="${tyranny.build.dir}/instrumentation" />
+	<property name="tyranny.instrumentation.jar.name" value="tyranny-instrumentation.jar" />
+	
+	<macrodef name="build_instrumentation">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Building Tyranny-Instrumentation${line.separator}#${line.separator}" />
+			<build_instrumentation_src/>
+			<build_instrumentation_jar/>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="clean_instrumentation">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Cleaning Tyranny-Instrumentation${line.separator}#${line.separator}" />
+			<delete dir="${tyranny.instrumentation.build.dir}" />
+			<delete file="${tyranny.dist.dir}/${tyranny.instrumentation.jar.name}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="build_instrumentation_src">
+		<sequential>
+			<mkdir dir="${tyranny.instrumentation.build.dir}"/>
+
+			<tyranny_javac destdir="${tyranny.instrumentation.build.dir}" fork="true" memoryinitialsize="64m"
+				memorymaximumsize="256m">
+				<src>
+					<dirset dir="${tyranny.instrumentation.src.dir}" />
+				</src>
+				<classpath>
+					<fileset dir="${tyranny.libs.dir}">
+						<include name="**/*.jar"/>
+					</fileset>
+				</classpath>
+			</tyranny_javac>			
+                        <copy todir="${tyranny.instrumentation.build.dir}">
+                                <fileset dir="${tyranny.instrumentation.src.dir}">
+                                        <include name="**/*.xml"/>
+                                </fileset>
+                        </copy>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="build_instrumentation_jar">
+		<sequential>
+			<mkdir dir="${tyranny.dist.dir}"/>
+			<delete file="${tyranny.dist.dir}/${tyranny.instrumentation.jar.name}"/>
+			<tyranny_jar destfile="${tyranny.dist.dir}/${tyranny.instrumentation.jar.name}">
+				<fileset dir="${tyranny.instrumentation.build.dir}"/>
+				<manifest>
+					<attribute name="Manifest-Version" value="1.0" />
+					<attribute name="Created-By" value="Waymire.NET" />
+					<attribute name="Premain-Class" value="net.waymire.tyranny.instrumentation.Agent" />
+				</manifest>
+			</tyranny_jar>
+		</sequential>
+	</macrodef>
+</project>

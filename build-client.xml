@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="Tyranny-Client">
+
+	<!-- ============================== -->
+	<!-- Property Definitions           -->
+	<!-- ============================== -->
+	<property name="tyranny.client.src.java.dir" value="${tyranny.src.dir}/client/main/java"/>
+	<property name="tyranny.client.src.resources.dir" value="${tyranny.src.dir}/client/main/resources"/>
+	<property name="tyranny.client.build.dir" value="${tyranny.build.dir}/client" />
+	<property name="tyranny.client.jar.name" value="tyranny-client.jar" />
+	
+	<macrodef name="build_client">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Building Tyranny-Client${line.separator}#${line.separator}" />
+			<build_client_src/>
+			<build_client_jar/>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="clean_client">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Cleaning Tyranny-Client${line.separator}#${line.separator}" />
+			<delete dir="${tyranny.client.build.dir}" />
+			<delete file="${tyranny.dist.dir}/${tyranny.client.jar.name}" />
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="build_client_src">
+		<sequential>
+			<mkdir dir="${tyranny.client.build.dir}"/>
+
+			<tyranny_javac destdir="${tyranny.client.build.dir}" fork="true" memoryinitialsize="64m" memorymaximumsize="256m">
+				<src>
+					<dirset dir="${tyranny.client.src.java.dir}" />
+					<dirset dir="${tyranny.client.src.resources.dir}" />
+				</src>
+				<classpath>
+					<fileset dir="${tyranny.libs.dir}">
+						<include name="**/*.jar"/>
+					</fileset>
+					<fileset dir="${tyranny.dist.dir}">
+						<include name="${tyranny.common.jar.name}"/>
+						<include name="${tyranny.mina.jar.name}"/>
+					</fileset>
+				</classpath>
+			</tyranny_javac>			
+			<copy todir="${tyranny.client.build.dir}">
+				<fileset dir="${tyranny.client.src.java.dir}">
+					<include name="**/*.xml"/>
+				</fileset>
+				<fileset dir="${tyranny.client.src.resources.dir}">
+					<include name="**/*"/>
+				</fileset>
+			</copy>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="build_client_jar">
+		<sequential>
+			<mkdir dir="${tyranny.dist.dir}"/>
+			<delete file="${tyranny.dist.dir}/${tyranny.client.jar.name}"/>
+			<tyranny_jar destfile="${tyranny.dist.dir}/${tyranny.client.jar.name}">
+				<fileset dir="${tyranny.client.build.dir}"/>
+				<fileset dir="${tyranny.client.src.resources.dir}" includes="**/*"/>
+			</tyranny_jar>
+		</sequential>
+	</macrodef>
+</project>

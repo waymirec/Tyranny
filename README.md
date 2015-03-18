@@ -1,2 +1,4 @@
-# Tyranny
-Open source MMO built on Java
+Tyranny
+=======
+
+Tyranny MMO

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="Sonar" xmlns:sonar="antlib:org.sonar.ant">
+
+	<!-- ============================== -->
+	<!-- Property Definitions           -->
+	<!-- ============================== -->
+	<property name="sonar.jdbc.url" value="jdbc:mysql://localhost:3306/sonar?useUnicode=true&amp;characterEncoding=utf8" />
+	<property name="sonar.jdbc.username" value="root" />
+	<property name="sonar.jdbc.password" value="" />
+
+	<property name="sonar.projectKey" value="net.waymire.tyranny"/>
+	<property name="sonar.projectName" value="Tyranny"/>
+	<property name="sonar.projectVersion" value="0.0.1"/>
+
+	<property name="sonar.sources" value="${tyranny.client.boot.src.dir},${tyranny.client.processors.src.dir},${tyranny.client.src.dir},${tyranny.common.src.dir},${tyranny.logformatters.src.dir},${tyranny.mina.src.dir},${tyranny.realm.boot.src.dir},${tyranny.realmlist.boot.src.dir},${tyranny.realmlist.mybatis.src.dir},${tyranny.realmlist.persistence.src.dir},${tyranny.realmlist.processors.src.dir},${tyranny.realmlist.src.dir},${tyranny.realm.processors.src.dir},${tyranny.realm.src.dir}"/>
+
+	<property name="sonar.binaries" value="${tyranny.client.boot.build.dir},${tyranny.client.processors.build.dir},${tyranny.client.build.dir},${tyranny.common.build.dir},${tyranny.logformatters.build.dir},${tyranny.mina.build.dir},${tyranny.realm.boot.build.dir},${tyranny.realmlist.boot.build.dir},${tyranny.realmlist.mybatis.build.dir},${tyranny.realmlist.persistence.build.dir},${tyranny.realmlist.processors.build.dir},${tyranny.realmlist.build.dir},${tyranny.realm.processors.build.dir},${tyranny.realm.build.dir}"/>
+
+	<taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
+		<classpath>
+			<fileset dir="${ant.lib.dir}">
+				<include name="**/*.jar"/>
+			</fileset>
+		</classpath>
+	</taskdef>
+
+	<target name="run_sonar">
+		<sonar:sonar/>
+	</target>
+</project>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	<typeAliases>
+		<typeAlias alias="PlayerAccount" type="net.waymire.tyranny.realmlist.server.persistence.model.PlayerAccountModel"/>
+		<typeAlias alias="PlayerCharacter" type="net.waymire.tyranny.realmlist.server.persistence.model.PlayerCharacterModel"/>
+		<typeAlias alias="GUID" type="net.waymire.tyranny.common.GUID"/>
+	</typeAliases>
+	
+	<typeHandlers>
+		<typeHandler handler="net.waymire.tyranny.realmlist.server.persistence.GUIDTypeHandler" javaType="net.waymire.tyranny.common.GUID" jdbcType="VARCHAR"/>
+	</typeHandlers>
+		
+	<environments default="development">
+		<environment id="development">
+			<transactionManager type="JDBC"/>
+			<dataSource type="POOLED">
+				<property name="driver" value="com.mysql.jdbc.Driver"/>
+				<property name="url" value="jdbc:mysql://localhost:3306/tyranny"/>
+				<property name="username" value="root"/>
+				<property name="password" value=""/>
+			</dataSource>
+		</environment>
+	</environments>
+	
+	<mappers>
+		<mapper resource="net/waymire/tyranny/realmlist/server/persistence/data/PlayerAccount.xml"/>
+		<mapper resource="net/waymire/tyranny/realmlist/server/persistence/data/PlayerCharacter.xml"/>
+	</mappers>
+</configuration>

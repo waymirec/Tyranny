@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="Tyranny-Client-jME3">
+
+	<!-- ============================== -->
+	<!-- Property Definitions           -->
+	<!-- ============================== -->
+	<property name="jme3.build.url" value="http://updates.jmonkeyengine.org/stable/3.0/engine"/>
+	<property name="jme3.build.name" value="jME3_2014-06-12.zip"/>
+	<property name="jme3.tmp.dir" value="${tyranny.libs.dir}/jME3" />
+
+	<macrodef name="retrieve_jme3">
+	    <sequential>
+	        <if>
+	            <available file="${jme3.tmp.dir}" type="dir" />
+            <then>
+                <echo message="jME3 libraries already exist. Ignoring..." />
+            </then>
+            <else>
+                <mkdir dir="${jme3.tmp.dir}" />
+		         <echo message="Retrieving jME from ${jme3.build.url}/${jme3.build.name}..."/>
+                 <get src="${jme3.build.url}/${jme3.build.name}" dest="${jme3.tmp.dir}" verbose="off" usetimestamp="true" skipexisting="true"/>
+                 <unzip src="${jme3.tmp.dir}/${jme3.build.name}" dest="${jme3.tmp.dir}"/>
+                 <move todir="${tyranny.libs.dir}">
+                    <fileset dir="${jme3.tmp.dir}/lib">
+                        <include name="**/*.jar"/>
+                    </fileset>
+                 </move>
+                 <delete dir="${jme3.tmp.dir}"/>
+            </else>
+            </if>
+	    </sequential>
+	</macrodef>
+</project>

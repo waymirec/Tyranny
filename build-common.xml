@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="Tyranny-Common">
+
+	<!-- ============================== -->
+	<!-- Property Definitions           -->
+	<!-- ============================== -->
+	<property name="tyranny.common.src.dir" value="${tyranny.src.dir}/common/main/java"/>
+	<property name="tyranny.common.build.dir" value="${tyranny.build.dir}/common" />
+	<property name="tyranny.common.jar.name" value="tyranny-common.jar" />
+	
+	<macrodef name="build_common">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Building Tyranny-Common${line.separator}#${line.separator}" />
+			<build_common_src/>
+			<build_common_jar/>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="clean_common">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Cleaning Tyranny-Common${line.separator}#${line.separator}" />
+			<delete dir="${tyranny.common.build.dir}" />
+			<delete file="${tyranny.dist.dir}/${tyranny.common.jar.name}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="build_common_src">
+		<sequential>
+			<mkdir dir="${tyranny.common.build.dir}"/>
+
+			<tyranny_javac destdir="${tyranny.common.build.dir}" fork="true" memoryinitialsize="64m"
+				memorymaximumsize="256m">
+				<src>
+					<dirset dir="${tyranny.common.src.dir}" />
+				</src>
+				<classpath>
+					<fileset dir="${tyranny.libs.dir}">
+						<include name="**/*.jar"/>
+					</fileset>
+				</classpath>
+			</tyranny_javac>			
+                        <copy todir="${tyranny.common.build.dir}">
+                                <fileset dir="${tyranny.common.src.dir}">
+                                        <include name="**/*.xml"/>
+                                </fileset>
+                        </copy>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="build_common_jar">
+		<sequential>
+			<mkdir dir="${tyranny.dist.dir}"/>
+			<delete file="${tyranny.dist.dir}/${tyranny.common.jar.name}"/>
+			<tyranny_jar destfile="${tyranny.dist.dir}/${tyranny.common.jar.name}">
+				<fileset dir="${tyranny.common.build.dir}"/>
+				<manifest>
+				</manifest>
+			</tyranny_jar>
+		</sequential>
+	</macrodef>
+</project>

@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="build-utils-public">
+	<!-- ======================================== -->
+	<!-- Task Definitions -->
+	<!-- ======================================== -->
+
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties" classpathref="antlibs"/>
+	<taskdef name="inifile" classname="net.sf.antcontrib.inifile.IniFileTask" classpathref="antlibs"/>
+	<taskdef name="for" classname="net.sf.antcontrib.logic.For" classpathref="antlibs"/>
+	<taskdef name="foreach" classname="net.sf.antcontrib.logic.ForEach" classpathref="antlibs"/>
+	<taskdef name="if" classname="net.sf.antcontrib.logic.IfTask" classpathref="antlibs"/>
+	<taskdef name="throw" classname="net.sf.antcontrib.logic.Throw" classpathref="antlibs"/>
+	<taskdef name="trycatch" classname="net.sf.antcontrib.logic.TryCatchTask" classpathref="antlibs"/>
+	<taskdef name="switch" classname="net.sf.antcontrib.logic.Switch" classpathref="antlibs"/>
+	<taskdef name="math" classname="net.sf.antcontrib.property.MathTask" classpathref="antlibs"/>
+	<taskdef name="shellscript" classname="net.sf.antcontrib.platform.ShellScriptTask" classpathref="antlibs"/>
+	<taskdef name="propertycopy" classname="net.sf.antcontrib.property.PropertyCopy" classpathref="antlibs"/>
+	<taskdef name="propertyselector" classname="net.sf.antcontrib.property.PropertySelector" classpathref="antlibs"/>
+	<taskdef name="propertyregex" classname="net.sf.antcontrib.property.RegexTask" classpathref="antlibs"/>
+	<taskdef name="sortlist" classname="net.sf.antcontrib.property.SortList" classpathref="antlibs"/>
+	<taskdef name="var" classname="net.sf.antcontrib.property.Variable" classpathref="antlibs"/>
+	<if>
+		<available resource="net/sf/antcount/antlib.xml" />
+		<then>
+			<taskdef resource="net/sf/antcount/antlib.xml" />
+		</then>
+	</if>
+	<if>
+		<available classname="com.oopsconsultancy.xmltask.ant.XmlTask" />
+		<then>
+			<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask" />
+		</then>
+	</if>
+	<if>
+		<available resource="com/springsource/bundlor/ant/antlib.xml" />
+		<then>
+			<taskdef resource="com/springsource/bundlor/ant/antlib.xml" />
+		</then>
+	</if>
+	<if>
+		<available classname="org.codehaus.groovy.ant.Groovy" />
+		<then>
+			<taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy" />
+		</then>
+	</if>
+
+	<!-- ======================================== -->
+	<!-- Environment and Local Properties -->
+	<!-- ======================================== -->
+
+	<property environment="myenv" />
+	<property file="build.properties" />
+
+	<!-- ======================================== -->
+	<!-- OS Properties -->
+	<!-- ======================================== -->
+
+	<tstamp>
+		<format property="os.prettytime" pattern="MM/dd/yyyy HH:mm:ss:SSS" />
+		<format property="os.rawtime" pattern="MMddyyyyHHmmssSSS" />
+	</tstamp>
+
+	<condition property="os.windows">
+		<os family="windows" />
+	</condition>
+	<condition property="os.unix">
+		<os family="unix" />
+	</condition>
+	<condition property="os.aix">
+		<equals arg1="${os.name}" arg2="aix" trim="true" casesensitive="false" />
+	</condition>
+	<condition property="os.hpux">
+		<equals arg1="${os.name}" arg2="hp-ux" trim="true"
+			casesensitive="false" />
+	</condition>
+	<condition property="os.linux">
+		<equals arg1="${os.name}" arg2="linux" trim="true"
+			casesensitive="false" />
+	</condition>
+	<condition property="os.mac">
+		<contains string="${os.name}" substring="mac" casesensitive="false" />
+	</condition>
+	<condition property="os.solaris">
+		<or>
+			<equals arg1="${os.name}" arg2="solaris" trim="true"
+				casesensitive="false" />
+			<equals arg1="${os.name}" arg2="sunos" trim="true"
+				casesensitive="false" />
+		</or>
+	</condition>
+
+	<condition property="os.family" value="windows">
+		<isset property="os.windows" />
+	</condition>
+	<condition property="os.family" value="unix">
+		<isset property="os.unix" />
+	</condition>
+
+	<condition property="os.path.envvar.name" value="Path">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.Path" />
+		</and>
+	</condition>
+	<property name="os.path.envvar.name" value="PATH" />
+
+	<condition property="os.path.envvar.value" value="${myenv.Path}">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.Path" />
+		</and>
+	</condition>
+	<condition property="os.path.envvar.value" value="${myenv.PATH}">
+		<isset property="myenv.PATH" />
+	</condition>
+	<property name="os.path.envvar.value" value="" />
+
+	<condition property="os.include.envvar.name" value="include">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.include" />
+		</and>
+	</condition>
+	<condition property="os.include.envvar.name" value="Include">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.Include" />
+		</and>
+	</condition>
+	<property name="os.include.envvar.name" value="INCLUDE" />
+
+	<condition property="os.include.envvar.value" value="${myenv.include}">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.include" />
+		</and>
+	</condition>
+	<condition property="os.include.envvar.value" value="${myenv.Include}">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.Include" />
+		</and>
+	</condition>
+	<condition property="os.include.envvar.value" value="${myenv.INCLUDE}">
+		<isset property="myenv.INCLUDE" />
+	</condition>
+	<property name="os.include.envvar.value" value="" />
+
+	<condition property="os.libpath.envvar.name" value="lib">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.lib" />
+		</and>
+	</condition>
+	<condition property="os.libpath.envvar.name" value="Lib">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.Lib" />
+		</and>
+	</condition>
+	<condition property="os.libpath.envvar.name" value="LIB">
+		<isset property="os.windows" />
+	</condition>
+	<condition property="os.libpath.envvar.name" value="LIBPATH">
+		<isset property="os.aix" />
+	</condition>
+	<condition property="os.libpath.envvar.name" value="SHLIB_PATH">
+		<isset property="os.hpux" />
+	</condition>
+	<property name="os.libpath.envvar.name" value="LD_LIBRARY_PATH" />
+
+	<condition property="os.libpath.envvar.value" value="${myenv.lib}">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.lib" />
+		</and>
+	</condition>
+	<condition property="os.libpath.envvar.value" value="${myenv.Lib}">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.Lib" />
+		</and>
+	</condition>
+	<condition property="os.libpath.envvar.value" value="${myenv.LIB}">
+		<and>
+			<isset property="os.windows" />
+			<isset property="myenv.LIB" />
+		</and>
+	</condition>
+	<condition property="os.libpath.envvar.value" value="${myenv.LIBPATH}">
+		<and>
+			<isset property="os.aix" />
+			<isset property="myenv.LIBPATH" />
+		</and>
+	</condition>
+	<condition property="os.libpath.envvar.value" value="${myenv.SHLIB_PATH}">
+		<and>
+			<isset property="os.hpux" />
+			<isset property="myenv.SHLIB_PATH" />
+		</and>
+	</condition>
+	<condition property="os.libpath.envvar.value" value="${myenv.LD_LIBRARY_PATH}">
+		<isset property="myenv.LD_LIBRARY_PATH" />
+	</condition>
+	<property name="os.libpath.envvar.value" value="" />
+
+	<condition property="os.exe.suffix" value=".exe">
+		<isset property="os.windows" />
+	</condition>
+	<condition property="os.exe.suffix" value="">
+		<isset property="os.unix" />
+	</condition>
+
+	<condition property="os.script.suffix" value=".bat">
+		<isset property="os.windows" />
+	</condition>
+	<condition property="os.script.suffix" value=".sh">
+		<isset property="os.unix" />
+	</condition>
+
+	<condition property="os.lib.ext.dynamic" value=".dll">
+		<isset property="os.windows" />
+	</condition>
+	<property name="os.lib.ext.dynamic" value=".so" />
+
+	<condition property="os.lib.ext.static" value=".dll">
+		<isset property="os.windows" />
+	</condition>
+	<condition property="os.lib.ext.static" value=".a">
+		<isset property="os.aix" />
+	</condition>
+	<property name="os.lib.ext.static" value=".so" />
+
+	<!-- ======================================== -->
+	<!-- JVM Properties -->
+	<!-- ======================================== -->
+
+	<condition property="jvm.hp">
+		<contains string="${java.vendor}" substring="hewlett"
+			casesensitive="false" />
+	</condition>
+	<condition property="jvm.ibm">
+		<contains string="${java.vendor}" substring="ibm"
+			casesensitive="false" />
+	</condition>
+	<condition property="jvm.sun">
+		<contains string="${java.vendor}" substring="sun"
+			casesensitive="false" />
+	</condition>
+
+	<condition property="tyranny.aes.provider.default" value="SunJCE">
+		<or>
+			<isset property="jvm.hp" />
+			<isset property="jvm.sun" />
+		</or>
+	</condition>
+	<condition property="tyranny.aes.provider.default" value="IBMJCE">
+		<isset property="jvm.ibm" />
+	</condition>
+
+	<!-- ======================================== -->
+	<!-- Tyranny OS Properties -->
+	<!-- ======================================== -->
+
+	<property name="tyranny.os.name.list"
+		value="linux32,linux64,win32,win64_amd64" />
+	<condition property="tyranny.os.name" value="${myenv.OSNAME}">
+		<and>
+			<isset property="myenv.OSNAME" />
+			<not>
+				<isset property="tyranny.os.name" />
+			</not>
+		</and>
+	</condition>
+	<condition property="tyranny.os.name" value="win32">
+		<and>
+			<isset property="os.windows" />
+			<equals arg1="${os.arch}" arg2="x86" trim="true"
+				casesensitive="false" />
+			<not>
+				<equals arg1="${myenv.PROCESSOR_ARCHITEW6432}" arg2="amd64"
+					trim="true" casesensitive="false" />
+			</not>
+		</and>
+	</condition>
+	<condition property="ied.os.name" value="win64_amd64">
+		<and>
+			<isset property="os.windows" />
+			<or>
+				<equals arg1="${os.arch}" arg2="amd64" trim="true"
+					casesensitive="false" />
+				<equals arg1="${myenv.PROCESSOR_ARCHITEW6432}" arg2="amd64"
+					trim="true" casesensitive="false" />
+			</or>
+		</and>
+	</condition>
+	<condition property="ied.os.name" value="linux32">
+		<and>
+			<isset property="os.linux" />
+			<not>
+				<contains string="${os.arch}" substring="64" casesensitive="false" />
+			</not>
+		</and>
+	</condition>
+	<condition property="ied.os.name" value="linux64">
+		<and>
+			<isset property="os.linux" />
+			<contains string="${os.arch}" substring="64" casesensitive="false" />
+		</and>
+	</condition>
+	<property name="tyranny.os.${tyranny.os.name}" value="true" />
+
+	<!-- ======================================== -->
+	<!-- Miscellaneous Tasks, Macros, and Presets -->
+	<!-- ======================================== -->
+
+	<macrodef name="replacestrings">
+		<attribute name="property" />
+		<attribute name="override" default="false" />
+		<attribute name="input" />
+		<attribute name="map" />
+		<sequential>
+			<var name="new.value" value="@{input}" />
+
+			<if>
+				<length string="${new.value}" trim="true" when="greater"
+					length="0" />
+				<then>
+					<for list="@{map}" param="map.entry" delimiter=";">
+						<sequential>
+							<propertyregex property="search.str" input="@{map.entry}"
+								regexp="(.*),(.*)" select="\1" override="true" />
+							<propertyregex property="replace.str" input="@{map.entry}"
+								regexp="(.*),(.*)" select="\2" override="true" />
+							<if>
+								<contains string="${new.value}" substring="${search.str}" />
+								<then>
+									<propertyregex property="new.value" input="${new.value}"
+										regexp="${search.str}" replace="${replace.str}" global="true"
+										override="true" />
+								</then>
+							</if>
+						</sequential>
+					</for>
+				</then>
+			</if>
+
+			<if>
+				<istrue value="@{override}" />
+				<then>
+					<var name="@{property}" value="${new.value}" />
+				</then>
+				<else>
+					<property name="@{property}" value="${new.value}" />
+				</else>
+			</if>
+
+			<var name="new.value" unset="true" />
+		</sequential>
+	</macrodef>
+
+	<presetdef name="lcase">
+		<replacestrings
+			map="A,a;B,b;C,c;D,d;E,e;F,f;G,g;H,h;I,i;J,j;K,k;L,l;M,m;N,n;O,o;P,p;Q,q;R,r;S,s;T,t;U,u;V,v;W,w;X,x;Y,y;Z,z" />
+	</presetdef>
+
+	<presetdef name="ucase">
+		<replacestrings
+			map="a,A;b,B;c,C;d,D;e,E;f,F;g,G;h,H;i,I;j,J;k,K;l,L;m,M;n,N;o,O;p,P;q,Q;r,R;s,S;t,T;u,U;v,V;w,W;x,X;y,Y;z,Z" />
+	</presetdef>
+
+	<macrodef name="ccase">
+		<attribute name="property" />
+		<attribute name="override" default="false" />
+		<attribute name="input" />
+		<sequential>
+			<fail message="Input cannot be zero length">
+				<condition>
+					<length string="@{input}" trim="true" length="0" />
+				</condition>
+			</fail>
+
+			<var name="first.char" unset="true" />
+			<var name="remainder" unset="true" />
+			<propertyregex property="first.char" input="@{input}"
+				regexp="(.)(.*)" select="\1" />
+			<propertyregex property="remainder" input="@{input}"
+				regexp="(.)(.*)" select="\2" />
+			<property name="remainder" value="" />
+
+			<var name="first.char.ucase" unset="true" />
+			<ucase property="first.char.ucase" input="${first.char}" />
+
+			<var name="remainder.lcase" unset="true" />
+			<lcase property="remainder.lcase" input="${remainder}" />
+
+			<if>
+				<istrue value="@{override}" />
+				<then>
+					<var name="@{property}" value="${first.char.ucase}${remainder.lcase}" />
+				</then>
+				<else>
+					<property name="@{property}" value="${first.char.ucase}${remainder.lcase}" />
+				</else>
+			</if>
+
+			<var name="first.char" unset="true" />
+			<var name="remainder" unset="true" />
+			<var name="first.char.ucase" unset="true" />
+			<var name="remainder.lcase" unset="true" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="hostname">
+		<attribute name="property" />
+		<sequential>
+			<if>
+				<not>
+					<isset property="@{property}" />
+				</not>
+				<then>
+					<if>
+						<or>
+							<isset property="os.aix" />
+							<isset property="os.linux" />
+						</or>
+						<then>
+							<exec executable="hostname" outputproperty="@{property}">
+								<arg line="-s" />
+							</exec>
+						</then>
+						<else>
+							<exec executable="hostname" outputproperty="@{property}" />
+						</else>
+					</if>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="whoami">
+		<attribute name="property" />
+		<sequential>
+			<if>
+				<not>
+					<isset property="@{property}" />
+				</not>
+				<then>
+					<if>
+						<isset property="os.windows" />
+						<then>
+							<var name="whoami.value" value="${myenv.USERNAME}" />
+						</then>
+						<elseif>
+							<isset property="myenv.LOGNAME" />
+							<then>
+								<var name="whoami.value" value="${myenv.LOGNAME}" />
+							</then>
+						</elseif>
+						<elseif>
+							<isset property="myenv.USER" />
+							<then>
+								<var name="whoami.value" value="${myenv.USER}" />
+							</then>
+						</elseif>
+						<else>
+							<var name="whoami.value" unset="true" />
+							<exec executable="whoami" outputproperty="whoami.value"
+								failifexecutionfails="false" />
+							<property name="whoami.value" value="unknown" />
+						</else>
+					</if>
+					<propertyregex property="@{property}" input="${whoami.value}"
+						regexp="(.*)\\(.*)" select="\2" />
+					<property name="@{property}" value="${whoami.value}" />
+					<var name="whoami.value" unset="true" />
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="shortname">
+		<attribute name="property" />
+		<attribute name="file" />
+		<sequential>
+			<if>
+				<isset property="os.windows" />
+				<then>
+					<var name="file.path" unset="true" />
+					<pathconvert property="file.path">
+						<path path="@{file}" />
+					</pathconvert>
+					<shellscript shell="cmd" tmpsuffix=".bat"
+						outputproperty="@{property}">
+						<arg value="/c" />
+						<arg value="call" />
+						@echo off
+						for %%i in ("${file.path}") do set shorty=%%~fsi
+						echo %shorty%
+					</shellscript>
+					<var name="file.path" unset="true" />
+				</then>
+				<else>
+					<property name="@{property}" value="@{file}" />
+				</else>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<!-- ======================================== -->
+	<!-- Tyranny Build Variables -->
+	<!-- ======================================== -->
+
+	<property name="tyranny.build.compiler" value="modern" />
+	<property name="tyranny.build.compiler.ajc"
+		value="org.aspectj.tools.ant.taskdefs.Ajc11CompilerAdapter" />
+	<property name="tyranny.build.compress" value="true" />
+	<property name="tyranny.build.debug" value="on" />
+	<!-- turn on debug by default for java builds -->
+	<property name="tyranny.build.deprecation" value="on" />
+	<property name="tyranny.build.optimize" value="on" />
+	<property name="tyranny.build.includeantruntime" value="false" />
+	<property name="tyranny.build.source" value="1.7" />
+	<property name="tyranny.build.target" value="1.7" />
+
+	<!-- ======================================== -->
+	<!-- Tyranny Build Presets and Macros -->
+	<!-- ======================================== -->
+
+	<presetdef name="tyranny_javac">
+		<javac compiler="${tyranny.build.compiler}" debug="${tyranny.build.debug}"
+			deprecation="${tyranny.build.deprecation}" optimize="${tyranny.build.optimize}"
+			includeantruntime="${tyranny.build.includeantruntime}" source="${tyranny.build.source}"
+			target="${tyranny.build.target}" />
+	</presetdef>
+
+	<presetdef name="tyranny_javah">
+		<javah />
+	</presetdef>
+
+	<presetdef name="tyranny_jar">
+		<jar compress="${tyranny.build.compress}" />
+	</presetdef>
+</project>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="Tyranny-Mongo">
+
+	<!-- ============================== -->
+	<!-- Property Definitions           -->
+	<!-- ============================== -->
+	<property name="tyranny.mongo.src.java.dir" value="${tyranny.src.dir}/mongo/main/java"/>
+	<property name="tyranny.mongo.src.resources.dir" value="${tyranny.src.dir}/mongo/main/resources"/>
+	<property name="tyranny.mongo.build.dir" value="${tyranny.build.dir}/mongo" />
+	<property name="tyranny.mongo.jar.name" value="tyranny-mongo.jar" />
+
+	<macrodef name="build_mongo">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Building Tyranny-Mongo${line.separator}#${line.separator}" />
+			<build_mongo_src/>
+			<build_mongo_jar/>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="clean_mongo">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Cleaning Tyranny-Mongo${line.separator}#${line.separator}" />
+			<delete dir="${tyranny.mongo.build.dir}" />
+			<delete file="${tyranny.dist.dir}/${tyranny.mongo.jar.name}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="build_mongo_src">
+		<sequential>
+			<mkdir dir="${tyranny.mongo.build.dir}"/>
+
+			<tyranny_javac destdir="${tyranny.mongo.build.dir}" fork="true" memoryinitialsize="64m" memorymaximumsize="256m">
+				<src>
+					<dirset dir="${tyranny.mongo.src.java.dir}" />
+					<dirset dir="${tyranny.mongo.src.resources.dir}" />
+				</src>
+				<classpath>
+					<fileset dir="${tyranny.libs.dir}">
+						<include name="**/*.jar"/>
+					</fileset>
+					<fileset dir="${tyranny.dist.dir}">
+						<include name="${tyranny.common.jar.name}"/>
+					</fileset>
+				</classpath>
+			</tyranny_javac>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="build_mongo_jar">
+		<sequential>
+			<mkdir dir="${tyranny.dist.dir}"/>
+			<delete file="${tyranny.dist.dir}/${tyranny.mongo.jar.name}"/>
+			<tyranny_jar destfile="${tyranny.dist.dir}/${tyranny.mongo.jar.name}">
+				<fileset dir="${tyranny.mongo.build.dir}"/>
+			</tyranny_jar>
+		</sequential>
+	</macrodef>
+</project>

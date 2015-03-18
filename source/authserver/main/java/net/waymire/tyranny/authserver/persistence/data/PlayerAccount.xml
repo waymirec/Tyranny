@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="PlayerAccount">
+	<!--  RESULT MAPS -->
+	<resultMap id="PlayerAccountResultMap" type="PlayerAccount">
+		<result column="id" property="accountId" typeHandler="net.waymire.tyranny.realmlist.server.persistence.GUIDTypeHandler"/>
+		<result column="username" property="username" />
+		<result column="password" property="password" />
+		<result column="firstname" property="firstname" />
+		<result column="lastname" property="lastname" />
+		<result column="mi" property="middleInitial" />
+	</resultMap>
+	
+	<select id="getAll" resultMap="PlayerAccountResultMap">
+		SELECT * FROM player_accounts
+	</select>
+	
+	<select id="getByAccountId" resultMap="PlayerAccountResultMap" parameterType="net.waymire.tyranny.common.GUID">
+		SELECT * FROM player_accounts WHERE id = #{_parameter,typeHandler=net.waymire.tyranny.realmlist.server.persistence.GUIDTypeHandler}
+	</select>
+	
+	<select id="getByUserName" resultMap="PlayerAccountResultMap" parameterType="string">
+		SELECT * FROM player_accounts WHERE username = #{username}
+	</select>
+	
+	<delete id="deleteByAccountId" parameterType="net.waymire.tyranny.common.GUID">
+		DELETE FROM player_accounts WHERE id = #{_parameter,typeHandler=net.waymire.tyranny.realmlist.server.persistence.GUIDTypeHandler}
+	</delete>
+	
+	<delete id="deleteByUserName" parameterType="string">
+		DELETE FROM player_accounts WHERE username = #{username}
+	</delete>
+	
+	<update id="update" parameterType="PlayerAccount">
+		UPDATE player_accounts SET
+			username=#{username},
+			password=#{password},
+			firstname=#{firstname},
+			lastname=#{lastname}
+		WHERE
+			id=#{accountId,typeHandler=net.waymire.tyranny.realmlist.server.persistence.GUIDTypeHandler}
+	</update>
+	
+	<insert id="insert" parameterType="PlayerAccount">
+		INSERT INTO player_accounts 
+			(id,username,password,firstname,lastname)
+		VALUES
+			( 
+			  #{accountId,typeHandler=net.waymire.tyranny.realmlist.server.persistence.GUIDTypeHandler},
+			  #{username},
+			  #{password},
+			  #{firstname},
+			  #{lastname}
+		    )
+	</insert>
+</mapper>

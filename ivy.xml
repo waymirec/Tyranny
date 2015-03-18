@@ -1,0 +1,44 @@
+<ivy-module version="2.0">
+	<info organisation="org.apache" module="tyranny-ivy"/>
+	<dependencies>
+		<dependency org="commons-lang" name="commons-lang" rev="2.6" conf="default->master"/>
+		<dependency org="commons-codec" name="commons-codec" rev="1.7" conf="default->master"/>
+		<dependency org="commons-logging" name="commons-logging" rev="1.1.1" conf="default->master"/>
+		<dependency org="commons-codec" name="commons-codec" rev="1.7" conf="default->master"/>
+		<dependency org="commons-io" name="commons-io" rev="2.4" conf="default->master"/>
+		<dependency org="org.slf4j" name="slf4j-api" rev="1.7.2" conf="default->master"/>
+		<dependency org="org.slf4j" name="slf4j-simple" rev="1.7.2" conf="default->master"/>
+		<dependency org="org.javassist" name="javassist" rev="3.18.0-GA" conf="default->master"/>
+		<dependency org="org.testng" name="testng" rev="6.4" conf="default->master"/>
+		<dependency org="com.beust" name="jcommander" rev="1.30" conf="default->master"/>
+		<dependency org="com.sun.xml.bind" name="jaxb-impl" rev="2.2.6" conf="default->master"/>
+		<dependency org="com.sun.xml.bind" name="jaxb-xjc" rev="2.2.6" conf="default->master"/>
+		<dependency org="org.apache.mina" name="mina-core" rev="2.0.7" conf="default->master"/>
+		<dependency org="javax.xml.bind" name="jaxb-api" rev="2.2.9" conf="default->master"/>
+		<!-- <dependency org="cglib" name="cglib" rev="3.0" conf="default->master"/> -->
+		<dependency org="cglib" name="cglib-nodep" rev="3.1" conf="default->master"/>
+		<dependency org="org.mongodb" name="mongo-java-driver" rev="2.12.3" conf="default->master"/>
+		<dependency org="org.mongodb.morphia" name="morphia" rev="0.108" conf="default->master"/>
+		<dependency org="org.mongodb.morphia" name="morphia-validation" rev="0.108" conf="default->master"/>
+		<dependency org="org.mongodb.morphia" name="morphia-logging-slf4j" rev="0.108" conf="default->master"/>
+		<dependency org="org.mongodb.morphia" name="morphia-guice-plug" rev="0.108" conf="default->master"/>
+		<dependency org="org.mongodb.morphia" name="morphia-entityscanner-plug" rev="0.108" conf="default->master"/>
+		<dependency org="asm" name="asm" rev="3.3.1" conf="default->master"/>
+	</dependencies>
+</ivy-module>
+
+<!--
+  <path id="maven-ant-tasks.classpath"
+           path="lib/maven-ant-tasks-2.0.9.jar" />
+  <typedef resource="org/apache/maven/artifact/ant/antlib.xml"
+              uri="urn:maven-artifact-ant"
+              classpathref="maven-ant-tasks.classpath" />
+  <artifact:remoteRepository id="berkeleydb-je.repository"
+                                url="http://download.oracle.com/maven/" />
+  <artifact:dependencies pathId="dependency.classpath">
+    <remoteRepository refid="berkeleydb-je.repository" />
+    <dependency groupId="com.sleepycat"
+                   artifactId="je"
+                   version="3.3.75"/>
+  </artifact:dependencies>
+-->

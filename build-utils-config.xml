@@ -1,0 +1,1204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="build-utils-config">
+
+	<!-- ======================================== -->
+	<!-- Miscellaneous Tasks, Macros, and Presets -->
+	<!-- ======================================== -->
+
+	<macrodef name="trunc">
+		<attribute name="property" />
+		<attribute name="input" />
+		<attribute name="length" />
+		<sequential>
+			<fail message="Input cannot be zero length">
+				<condition>
+					<length string="@{input}" trim="true" length="0" />
+				</condition>
+			</fail>
+
+			<propertyregex property="@{property}" input="@{input}"
+				regexp="(.{1,@{length}})" select="\1" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="tee">
+		<attribute name="message" />
+		<attribute name="file" default="" />
+		<attribute name="append" default="true" />
+		<attribute name="ignoreblanks" default="false" />
+		<attribute name="silent" default="false" />
+		<sequential>
+			<if>
+				<or>
+					<isfalse value="@{ignoreblanks}" />
+					<length string="@{message}" trim="true" when="greater"
+						length="0" />
+				</or>
+				<then>
+					<if>
+						<isfalse value="@{silent}" />
+						<then>
+							<echo message="@{message}" />
+						</then>
+					</if>
+					<if>
+						<length string="@{file}" trim="true" when="greater" length="0" />
+						<then>
+							<var name="tee.file.dirname" unset="true" />
+							<dirname property="tee.file.dirname" file="@{file}" />
+							<mkdir dir="${tee.file.dirname}" />
+							<var name="tee.file.dirname" unset="true" />
+
+							<echo message="@{message}" file="@{file}" append="@{append}" />
+						</then>
+					</if>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="tee_exec_env">
+		<attribute name="message" />
+		<attribute name="file" default="" />
+		<element name="execenv" optional="true" implicit="true" />
+		<sequential>
+			<if>
+				<isset property="os.windows" />
+				<then>
+					<property name="env.exe" value="cmd" />
+					<property name="env.argline" value="/c set" />
+				</then>
+				<else>
+					<property name="env.exe" value="env" />
+					<property name="env.argline" value="" />
+				</else>
+			</if>
+
+			<tee message="@{message}" file="@{file}" />
+			<tee message="" file="@{file}" />
+			<exec executable="${env.exe}" failonerror="false">
+				<arg line="${env.argline}" />
+				<execenv />
+				<redirector output="@{file}" append="true"
+					createemptyfiles="false" alwayslog="true" />
+			</exec>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="tee_properties_sorted">
+		<attribute name="destfile" default="" />
+		<attribute name="prefix" default="" />
+		<attribute name="silent" default="false" />
+		<sequential>
+			<tee
+				message="${line.separator}#${line.separator}# Ant Properties Dump (${os.prettytime}):${line.separator}#${line.separator}"
+				file="@{destfile}" silent="@{silent}" />
+			<propertyselector property="property.list" match="@{prefix}*"
+				override="true" />
+			<sortlist property="property.list.sorted" value="${property.list}" />
+			<for list="${property.list.sorted}" param="property.name">
+				<sequential>
+					<tee message="@{property.name}=${@{property.name}}${line.separator}"
+						file="@{destfile}" silent="@{silent}" />
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="inifile_setfromlist">
+		<attribute name="property" />
+		<attribute name="source" />
+		<attribute name="dest" />
+		<attribute name="section" />
+		<sequential>
+			<if>
+				<and>
+					<isset property="@{property}" />
+					<length string="${@{property}}" trim="true" when="greater"
+						length="0" />
+				</and>
+				<then>
+					<for list="${@{property}}" param="list.entry" trim="true">
+						<sequential>
+							<var name="property.name" unset="true" />
+							<var name="property.value" unset="true" />
+							<propertyregex property="property.name" input="@{list.entry}"
+								regexp="(.*)=(.*)" select="\1" />
+							<propertyregex property="property.value" input="@{list.entry}"
+								regexp="(.*)=(.*)" select="\2" />
+							<inifile source="@{source}" dest="@{dest}">
+								<set section="@{section}" property="${property.name}" value="${property.value}" />
+							</inifile>
+							<var name="property.name" unset="true" />
+							<var name="property.value" unset="true" />
+						</sequential>
+					</for>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="inifile_readandmap">
+		<attribute name="map" />
+		<attribute name="source" />
+		<attribute name="section" />
+		<attribute name="override" default="false" />
+		<sequential>
+			<for list="@{map}" param="map.entry" delimiter=";">
+				<sequential>
+					<propertyregex property="inifile.prop.name" input="@{map.entry}"
+						regexp="(.*),(.*)" select="\1" override="true" />
+					<propertyregex property="ant.prop.name" input="@{map.entry}"
+						regexp="(.*),(.*)" select="\2" override="true" />
+					<var name="inifile.prop.exists" unset="true" />
+					<inifile source="@{source}">
+						<exists section="@{section}" property="${inifile.prop.name}"
+							resultproperty="inifile.prop.exists" />
+					</inifile>
+					<if>
+						<istrue value="${inifile.prop.exists}" />
+						<then>
+							<inifile source="@{source}">
+								<get section="@{section}" property="${inifile.prop.name}"
+									resultproperty="${ant.prop.name}" override="@{override}" />
+							</inifile>
+						</then>
+					</if>
+					<var name="inifile.prop.exists" unset="true" />
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="propfile_set">
+		<attribute name="name" />
+		<attribute name="value" />
+		<attribute name="file" />
+		<attribute name="append" default="true" />
+		<attribute name="after" default="" />
+		<attribute name="escapeslashes" default="false" />
+		<attribute name="override" default="true" />
+		<sequential>
+			<timestamp property="current.tstamp" pattern="MMddyyyyHHmmssSSS" />
+			<if>
+				<available file="@{file}" />
+				<then>
+					<loadproperties srcFile="@{file}">
+						<filterchain>
+							<linecontainsregexp>
+								<regexp pattern="^(@{name}|@{after})=" />
+							</linecontainsregexp>
+							<prefixlines prefix="${current.tstamp}." />
+						</filterchain>
+					</loadproperties>
+				</then>
+			</if>
+
+			<if>
+				<isset property="${current.tstamp}.@{name}" />
+				<then>
+					<if>
+						<istrue value="@{override}" />
+						<then>
+							<if>
+								<istrue value="@{escapeslashes}" />
+								<then>
+									<escapeslashes property="escaped.property.value"
+										input="@{value}" />
+									<replaceregexp file="@{file}" match="^@{name}=(.*)"
+										replace="@{name}=${escaped.property.value}" byline="true" />
+									<var name="escaped.property.value" unset="true" />
+								</then>
+								<else>
+									<replaceregexp file="@{file}" match="^@{name}=(.*)"
+										replace="@{name}=@{value}" byline="true" />
+								</else>
+							</if>
+						</then>
+					</if>
+					<var name="${current.tstamp}.@{name}" unset="true" />
+				</then>
+				<elseif>
+					<and>
+						<length string="@{after}" trim="true" when="greater"
+							length="0" />
+						<isset property="${current.tstamp}.@{after}" />
+					</and>
+					<then>
+						<if>
+							<istrue value="@{escapeslashes}" />
+							<then>
+								<escapeslashes property="escaped.property.value"
+									input="@{value}" />
+								<replaceregexp file="@{file}" match="^@{after}=(.*)"
+									replace="@{after}=\1${line.separator}@{name}=${escaped.property.value}"
+									byline="true" />
+								<var name="escaped.property.value" unset="true" />
+							</then>
+							<else>
+								<replaceregexp file="@{file}" match="^@{after}=(.*)"
+									replace="@{after}=\1${line.separator}@{name}=@{value}" byline="true" />
+							</else>
+						</if>
+					</then>
+				</elseif>
+				<else>
+					<if>
+						<istrue value="@{escapeslashes}" />
+						<then>
+							<escapeslashes property="escaped.property.value"
+								input="@{value}" />
+							<echo message="@{name}=${escaped.property.value}${line.separator}"
+								file="@{file}" append="@{append}" />
+							<var name="escaped.property.value" unset="true" />
+						</then>
+						<else>
+							<echo message="@{name}=@{value}${line.separator}" file="@{file}"
+								append="@{append}" />
+						</else>
+					</if>
+				</else>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="propfile_setincrement">
+		<attribute name="name" />
+		<attribute name="value" />
+		<attribute name="file" />
+		<attribute name="append" default="true" />
+		<attribute name="start" default="1" />
+		<attribute name="reset" default="false" />
+		<sequential>
+			<if>
+				<and>
+					<isset property="@{name}.counter" />
+					<isfalse value="@{reset}" />
+				</and>
+				<then>
+					<math result="@{name}.counter" operand1="${@{name}.counter}"
+						operation="+" operand2="1" datatype="int" />
+				</then>
+				<else>
+					<var name="@{name}.counter" value="@{start}" />
+				</else>
+			</if>
+			<math result="@{name}.counter.minusone" operand1="${@{name}.counter}"
+				operation="-" operand2="1" datatype="int" />
+			<propfile_set name="@{name}.${@{name}.counter}" value="@{value}"
+				file="@{file}" append="@{append}" after="@{name}.${@{name}.counter.minusone}" />
+			<var name="@{name}.counter.minusone" unset="true" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="propfile_setfromlist">
+		<attribute name="property" />
+		<attribute name="prefix" default="" />
+		<attribute name="file" />
+		<sequential>
+			<if>
+				<and>
+					<isset property="@{property}" />
+					<length string="${@{property}}" trim="true" when="greater"
+						length="0" />
+				</and>
+				<then>
+					<for list="${@{property}}" param="list.entry" trim="true">
+						<sequential>
+							<propertyregex property="property.name" input="@{list.entry}"
+								regexp="(.*)=(.*)" select="\1" override="true" />
+							<propertyregex property="property.value" input="@{list.entry}"
+								regexp="(.*)=(.*)" select="\2" override="true" />
+							<propfile_set name="@{prefix}${property.name}"
+								value="${property.value}" file="@{file}" />
+						</sequential>
+					</for>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="propfile_setfromselector">
+		<attribute name="match" />
+		<attribute name="file" />
+		<sequential>
+			<propertyselector property="property.list" match="@{match}"
+				override="true" />
+			<for list="${property.list}" param="property.name">
+				<sequential>
+					<if>
+						<or>
+							<contains string="@{property.name}" substring="dir"
+								casesensitive="false" />
+							<contains string="@{property.name}" substring="file"
+								casesensitive="false" />
+							<contains string="@{property.name}" substring="path"
+								casesensitive="false" />
+							<contains string="@{property.name}" substring="account"
+								casesensitive="false" />
+						</or>
+						<then>
+							<propfile_set name="@{property.name}" value="${@{property.name}}"
+								file="@{file}" escapeslashes="true" />
+						</then>
+						<else>
+							<propfile_set name="@{property.name}" value="${@{property.name}}"
+								file="@{file}" />
+						</else>
+					</if>
+				</sequential>
+			</for>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="propfile_readandmap">
+		<attribute name="map" />
+		<attribute name="file" />
+		<attribute name="override" default="false" />
+		<sequential>
+			<if>
+				<available file="@{file}" />
+				<then>
+					<timestamp property="current.tstamp" pattern="MMddyyyyHHmmssSSS" />
+					<property file="@{file}" prefix="${current.tstamp}" />
+					<for list="@{map}" param="map.entry" delimiter=";">
+						<sequential>
+							<propertyregex property="source.prop.name" input="@{map.entry}"
+								regexp="(.*),(.*)" select="\1" override="true" />
+							<propertyregex property="target.prop.name" input="@{map.entry}"
+								regexp="(.*),(.*)" select="\2" override="true" />
+							<propertycopy property="${target.prop.name}"
+								from="${current.tstamp}.${source.prop.name}" silent="true"
+								override="@{override}" />
+						</sequential>
+					</for>
+					<propertyselector property="property.list" match="${current.tstamp}.*"
+						override="true" />
+					<for list="${property.list}" param="property.name">
+						<sequential>
+							<var name="@{property.name}" unset="true" />
+						</sequential>
+					</for>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="propfile_remove">
+		<attribute name="name" />
+		<attribute name="file" />
+		<sequential>
+			<timestamp property="current.tstamp" pattern="MMddyyyyHHmmssSSS" />
+			<if>
+				<available file="@{file}" />
+				<then>
+					<loadproperties srcFile="@{file}">
+						<filterchain>
+							<linecontainsregexp>
+								<regexp pattern="^@{name}=" />
+							</linecontainsregexp>
+							<prefixlines prefix="${current.tstamp}." />
+						</filterchain>
+					</loadproperties>
+				</then>
+			</if>
+
+			<if>
+				<isset property="${current.tstamp}.@{name}" />
+				<then>
+					<replaceregexp file="@{file}" match="@{name}=(.*)"
+						replace="" byline="true" />
+					<var name="${current.tstamp}.@{name}" unset="true" />
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="propfile_replacetoken">
+		<attribute name="token" />
+		<attribute name="value" />
+		<attribute name="file" />
+		<attribute name="escapeslashes" default="false" />
+		<sequential>
+			<if>
+				<istrue value="@{escapeslashes}" />
+				<then>
+					<escapeslashes property="escaped.property.token"
+						input="@{token}" />
+					<replace file="@{file}" token="${escaped.property.token}"
+						value="@{value}" />
+					<var name="escaped.property.token" unset="true" />
+				</then>
+				<else>
+					<replace file="@{file}" token="@{token}" value="@{value}" />
+				</else>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="proplist_set">
+		<attribute name="listproperty" />
+		<attribute name="value" />
+		<attribute name="append" default="true" />
+		<element name="conditions" optional="true" implicit="true" />
+		<sequential>
+			<if>
+				<and>
+					<istrue value="true" />
+					<conditions />
+				</and>
+				<then>
+					<if>
+						<and>
+							<isset property="@{listproperty}" />
+							<length string="${@{listproperty}}" trim="false" when="greater"
+								length="0" />
+						</and>
+						<then>
+							<if>
+								<isfalse value="@{append}" />
+								<then>
+									<var name="@{listproperty}" value="@{value},${@{listproperty}}" />
+								</then>
+								<else>
+									<var name="@{listproperty}" value="${@{listproperty}},@{value}" />
+								</else>
+							</if>
+						</then>
+						<else>
+							<var name="@{listproperty}" value="@{value}" />
+						</else>
+					</if>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="proplist_contains">
+		<attribute name="listproperty" />
+		<attribute name="value" />
+		<attribute name="foundproperty" />
+		<sequential>
+			<if>
+				<and>
+					<isset property="@{listproperty}" />
+					<length string="${@{listproperty}}" trim="true" when="greater"
+						length="0" />
+				</and>
+				<then>
+					<for list="${@{listproperty}}" param="list.entry" trim="true">
+						<sequential>
+							<if>
+								<equals arg1="@{list.entry}" arg2="@{value}"
+									casesensitive="false" trim="true" />
+								<then>
+									<property name="@{foundproperty}" value="true" />
+								</then>
+							</if>
+						</sequential>
+					</for>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="checkinput">
+		<attribute name="message" />
+		<attribute name="property" />
+		<attribute name="validargs" default="" />
+		<attribute name="defaultvalue" default="_foo_" />
+		<attribute name="allowblanks" default="false" />
+		<attribute name="allowwhitespace" default="true" />
+		<attribute name="ispassword" default="false" />
+		<attribute name="isboolean" default="false" />
+		<attribute name="checkport" default="false" />
+		<attribute name="checkhostname" default="false" />
+		<attribute name="numbersonly" default="false" />
+		<attribute name="alphanumericonly" default="false" />
+		<attribute name="existingfile" default="false" />
+		<attribute name="existingfiletype" default="file" />
+		<attribute name="existingfilecreate" default="false" />
+		<attribute name="dateformat" default="" />
+		<attribute name="multiselect" default="false" />
+		<attribute name="maxlength" default="" />
+		<attribute name="interactive" default="${mad.ant.interactive}" />
+		<attribute name="recordfileprop" default="mad.ant.record.file" />
+		<attribute name="logfile" default="" />
+		<sequential>
+			<if>
+				<not>
+					<isset property="@{property}" />
+				</not>
+				<then>
+					<if>
+						<istrue value="@{interactive}" />
+						<then>
+							<var name="@{property}.checkinput.loop.counter" value="0" />
+							<tee
+								message="${line.separator}Interactive Prompt [@{property}] (@{message})"
+								file="@{logfile}" silent="true" />
+							<loop until="true" property="@{property}">
+								<math result="@{property}.checkinput.loop.counter"
+									operand1="${@{property}.checkinput.loop.counter}" operation="+"
+									operand2="1" datatype="int" />
+								<if>
+									<istrue value="@{isboolean}" />
+									<then>
+										<input
+											message="${line.separator}#${line.separator}# @{message}${line.separator}#    Valid Options: "
+											addproperty="@{property}" validargs="y,n" />
+										<if>
+											<equals arg1="${@{property}}" arg2="y" />
+											<then>
+												<var name="@{property}" value="true" />
+											</then>
+											<else>
+												<var name="@{property}" value="false" />
+											</else>
+										</if>
+									</then>
+									<elseif>
+										<length string="@{dateformat}" trim="true" when="greater"
+											length="0" />
+										<then>
+											<timestamp property="formatdatetimestamp" pattern="@{dateformat}" />
+											<if>
+												<equals arg1="@{defaultvalue}" arg2="_foo_" />
+												<then>
+													<input
+														message="${line.separator}#${line.separator}# @{message}${line.separator}#    Format: @{dateformat} (e.g. ${formatdatetimestamp})${line.separator}#"
+														addproperty="@{property}" />
+												</then>
+												<else>
+													<input
+														message="${line.separator}#${line.separator}# @{message}${line.separator}#    Format: @{dateformat} (e.g. ${formatdatetimestamp})${line.separator}#    Default Value:"
+														addproperty="@{property}" defaultvalue="@{defaultvalue}" />
+												</else>
+											</if>
+											<var name="formatdatetimestamp" unset="true" />
+										</then>
+									</elseif>
+									<else>
+										<if>
+											<length string="@{validargs}" trim="true" when="greater"
+												length="0" />
+											<then>
+												<if>
+													<istrue value="@{multiselect}" />
+													<then>
+														<input
+															message="${line.separator}#${line.separator}# @{message}${line.separator}#    Valid Options: (@{validargs})"
+															addproperty="@{property}" />
+													</then>
+													<else>
+														<input
+															message="${line.separator}#${line.separator}# @{message}${line.separator}#    Valid Options: "
+															addproperty="@{property}" validargs="@{validargs}" />
+													</else>
+												</if>
+											</then>
+											<else>
+												<if>
+													<and>
+														<istrue value="@{ispassword}" />
+														<available classname="org.apache.tools.ant.input.SecureInputHandler" />
+													</and>
+													<then>
+														<if>
+															<available classname="javax.management.MXBean" />
+															<then>
+																<input
+																	message="${line.separator}#${line.separator}# @{message}${line.separator}#    (password characters will not be displayed)${line.separator}#${line.separator}"
+																	addproperty="@{property}">
+																	<handler
+																		classname="org.apache.tools.ant.input.SecureInputHandler" />
+																</input>
+															</then>
+															<else>
+																<input
+																	message="${line.separator}#${line.separator}# @{message}${line.separator}#"
+																	addproperty="@{property}">
+																	<handler
+																		classname="org.apache.tools.ant.input.SecureInputHandler" />
+																</input>
+															</else>
+														</if>
+													</then>
+													<else>
+														<if>
+															<equals arg1="@{defaultvalue}" arg2="_foo_" />
+															<then>
+																<input
+																	message="${line.separator}#${line.separator}# @{message}${line.separator}#"
+																	addproperty="@{property}" />
+															</then>
+															<else>
+																<input
+																	message="${line.separator}#${line.separator}# @{message}${line.separator}#    Default Value:"
+																	addproperty="@{property}" defaultvalue="@{defaultvalue}" />
+															</else>
+														</if>
+													</else>
+												</if>
+											</else>
+										</if>
+									</else>
+								</if>
+								<if>
+									<and>
+										<isfalse value="@{allowblanks}" />
+										<length string="${@{property}}" trim="true" length="0" />
+									</and>
+									<then>
+										<echo
+											message="This field cannot be blank, please try again...${line.separator}" />
+										<var name="@{property}" unset="true" />
+									</then>
+								</if>
+								<if>
+									<and>
+										<isfalse value="@{allowwhitespace}" />
+										<matches pattern="[\s]" string="${@{property}}" />
+									</and>
+									<then>
+										<echo
+											message="This field cannot contain whitespace characters, please try again...${line.separator}" />
+										<var name="@{property}" unset="true" />
+									</then>
+								</if>
+								<if>
+									<and>
+										<istrue value="@{alphanumericonly}" />
+										<matches pattern="[^a-zA-Z0-9_]" string="${@{property}}" />
+									</and>
+									<then>
+										<echo
+											message="This field may only contain letters, numbers, and underscores, please try again...${line.separator}" />
+										<var name="@{property}" unset="true" />
+									</then>
+								</if>
+								<if>
+									<length string="@{maxlength}" trim="true" when="greater"
+										length="0" />
+									<then>
+										<if>
+											<length string="${@{property}}" trim="true" when="greater"
+												length="@{maxlength}" />
+											<then>
+												<echo
+													message="This field may only be @{maxlength} character(s) long, please try again...${line.separator}" />
+												<var name="@{property}" unset="true" />
+											</then>
+										</if>
+									</then>
+								</if>
+								<if>
+									<and>
+										<length string="@{validargs}" trim="true" when="greater"
+											length="0" />
+										<istrue value="@{multiselect}" />
+									</and>
+									<then>
+										<var name="property.list.cleaned" unset="true" />
+										<for list="${@{property}}" param="property.list.item"
+											trim="true">
+											<sequential>
+												<if>
+													<and>
+														<isset property="@{property}" />
+														<or>
+															<length string="@{property.list.item}" trim="true"
+																length="0" />
+															<not>
+																<contains string="@{validargs}" substring="@{property.list.item}" />
+															</not>
+														</or>
+													</and>
+													<then>
+														<echo
+															message="This field may only contain values from this list (@{validargs}), please try again...${line.separator}" />
+														<var name="@{property}" unset="true" />
+													</then>
+													<else>
+														<if>
+															<isset property="property.list.cleaned" />
+															<then>
+																<var name="property.list.cleaned"
+																	value="${property.list.cleaned},@{property.list.item}" />
+															</then>
+															<else>
+																<var name="property.list.cleaned" value="@{property.list.item}" />
+															</else>
+														</if>
+													</else>
+												</if>
+											</sequential>
+										</for>
+										<if>
+											<isset property="@{property}" />
+											<then>
+												<var name="@{property}" value="${property.list.cleaned}" />
+											</then>
+										</if>
+										<var name="property.list.cleaned" unset="true" />
+									</then>
+								</if>
+								<if>
+									<and>
+										<or>
+											<istrue value="@{checkport}" />
+											<istrue value="@{numbersonly}" />
+										</or>
+										<not>
+											<and>
+												<istrue value="@{allowblanks}" />
+												<length string="${@{property}}" trim="true" length="0" />
+											</and>
+										</not>
+									</and>
+									<then>
+										<var name="without.numbers" unset="true" />
+										<propertyregex property="without.numbers" input="${@{property}}"
+											regexp="[0-9]" replace="" global="true" />
+										<property name="without.numbers" value="${@{property}}" />
+										<if>
+											<length string="${without.numbers}" when="greater"
+												length="0" />
+											<then>
+												<echo
+													message="This field may only contain numbers, please try again...${line.separator}" />
+												<var name="@{property}" unset="true" />
+											</then>
+											<else>
+												<if>
+													<and>
+														<istrue value="@{checkport}" />
+														<socket server="localhost" port="${@{property}}" />
+													</and>
+													<then>
+														<echo
+															message="Port ${@{property}} is already in use, please try again...${line.separator}" />
+														<var name="@{property}" unset="true" />
+													</then>
+												</if>
+											</else>
+										</if>
+										<var name="without.numbers" unset="true" />
+									</then>
+								</if>
+								<if>
+									<and>
+										<istrue value="@{checkhostname}" />
+										<not>
+											<and>
+												<istrue value="@{allowblanks}" />
+												<length string="${@{property}}" trim="true" length="0" />
+											</and>
+										</not>
+									</and>
+									<then>
+										<trycatch>
+											<try>
+												<var name="property.attrval" value="@{property}" />
+												<groovy>
+													InetAddress.getByName(project.getProperty(project.getProperty("property.attrval")));
+												</groovy>
+											</try>
+											<catch>
+												<echo
+													message="Hostname ${@{property}} could not be resolved, please try again...${line.separator}" />
+												<var name="@{property}" unset="true" />
+											</catch>
+											<finally>
+												<var name="property.attrval" unset="true" />
+											</finally>
+										</trycatch>
+									</then>
+								</if>
+								<if>
+									<and>
+										<istrue value="@{existingfile}" />
+										<or>
+											<isfalse value="@{allowblanks}" />
+											<length string="${@{property}}" trim="true" when="greater"
+												length="0" />
+										</or>
+										<not>
+											<available file="${@{property}}" type="@{existingfiletype}" />
+										</not>
+									</and>
+									<then>
+										<if>
+											<istrue value="@{existingfilecreate}" />
+											<then>
+												<checkinput
+													message="The value you enter must point to an existing @{existingfiletype}, do you wish to create it?"
+													property="@{property}.checkinput.existingfilecreate.${@{property}.checkinput.loop.counter}"
+													defaultvalue="false" isboolean="true" logfile="${mad.ant.log.file}" />
+												<propertycopy property="@{property}.checkinput.existingfilecreate"
+													from="@{property}.checkinput.existingfilecreate.${@{property}.checkinput.loop.counter}"
+													silent="true" override="true" />
+												<if>
+													<istrue value="${@{property}.checkinput.existingfilecreate}" />
+													<then>
+														<if>
+															<equals arg1="@{existingfiletype}" arg2="dir"
+																trim="true" casesensitive="false" />
+															<then>
+																<mkdir dir="${@{property}}" />
+															</then>
+															<else>
+																<touch file="${@{property}}" />
+															</else>
+														</if>
+													</then>
+													<else>
+														<echo
+															message="This field must point to an existing @{existingfiletype}, please try again...${line.separator}" />
+														<var name="@{property}" unset="true" />
+													</else>
+												</if>
+												<var name="@{property}.checkinput.existingfilecreate"
+													unset="true" />
+											</then>
+											<else>
+												<echo
+													message="This field must point to an existing @{existingfiletype}, please try again...${line.separator}" />
+												<var name="@{property}" unset="true" />
+											</else>
+										</if>
+									</then>
+								</if>
+								<if>
+									<length string="@{dateformat}" trim="true" when="greater"
+										length="0" />
+									<then>
+										<trycatch>
+											<try>
+												<var name="property.attrval" value="@{property}" />
+												<var name="checkinput.dateformat" value="@{dateformat}" />
+												<groovy>
+													new
+													java.text.SimpleDateFormat(project.getProperty("checkinput.dateformat")).parse(project.getProperty(project.getProperty("property.attrval")));
+												</groovy>
+											</try>
+											<catch>
+												<echo
+													message="This field must be a valid date in '@{dateformat}' format, please try again...${line.separator}" />
+												<var name="@{property}" unset="true" />
+											</catch>
+											<finally>
+												<var name="checkinput.dateformat" unset="true" />
+												<var name="property.attrval" unset="true" />
+											</finally>
+										</trycatch>
+									</then>
+								</if>
+							</loop>
+						</then>
+						<else>
+							<tee message="${line.separator}Silent Prompt [@{property}] (@{message})"
+								file="@{logfile}" silent="true" />
+							<if>
+								<not>
+									<equals arg1="@{defaultvalue}" arg2="_foo_" />
+								</not>
+								<then>
+									<property name="@{property}" value="@{defaultvalue}" />
+								</then>
+								<else>
+									<if>
+										<istrue value="@{isboolean}" />
+										<then>
+											<property name="@{property}" value="true" />
+										</then>
+										<else>
+											<fail unless="@{property}" message="ERROR: @{property} property not set." />
+										</else>
+									</if>
+								</else>
+							</if>
+						</else>
+					</if>
+					<if>
+						<istrue value="@{ispassword}" />
+						<then>
+							<var name="password.masked" unset="true" />
+							<propertyregex property="password.masked" input="${@{property}}"
+								regexp="." replace="*" global="true" />
+							<tee message="${line.separator}    ${password.masked}${line.separator}"
+								file="@{logfile}" silent="true" />
+							<var name="password.masked" unset="true" />
+						</then>
+						<else>
+							<tee message="${line.separator}    ${@{property}}${line.separator}"
+								file="@{logfile}" silent="true" />
+						</else>
+					</if>
+				</then>
+			</if>
+			<fail message="ERROR: @{property} property cannot be blank.">
+				<condition>
+					<and>
+						<isfalse value="@{allowblanks}" />
+						<length string="${@{property}}" trim="true" length="0" />
+					</and>
+				</condition>
+			</fail>
+			<fail message="ERROR: @{property} property cannot contain whitespace.">
+				<condition>
+					<and>
+						<isfalse value="@{allowwhitespace}" />
+						<matches pattern="[\s]" string="${@{property}}" />
+					</and>
+				</condition>
+			</fail>
+			<fail
+				message="ERROR: @{property} property may only contain letters, numbers, and underscores.">
+				<condition>
+					<and>
+						<istrue value="@{alphanumericonly}" />
+						<matches pattern="[^a-zA-Z0-9_]" string="${@{property}}" />
+					</and>
+				</condition>
+			</fail>
+			<if>
+				<length string="@{maxlength}" trim="true" when="greater"
+					length="0" />
+				<then>
+					<fail
+						message="ERROR: @{property} property may only be @{maxlength} character(s) long .">
+						<condition>
+							<length string="${@{property}}" when="greater" length="@{maxlength}" />
+						</condition>
+					</fail>
+				</then>
+			</if>
+			<if>
+				<isset property="@{recordfileprop}" />
+				<then>
+					<propertyfile file="${@{recordfileprop}}" comment="Madconfig Response Property File">
+						<entry key="@{property}" value="${@{property}}" />
+					</propertyfile>
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="timestamp">
+		<attribute name="property" />
+		<attribute name="pattern" default="MM/dd/yyyy HH:mm:ss" />
+		<attribute name="suffix" default="" />
+		<sequential>
+			<var name="@{property}" unset="true" />
+			<if>
+				<length string="@{pattern}" trim="true" when="greater"
+					length="0" />
+				<then>
+					<tstamp>
+						<format property="@{property}" pattern="@{pattern}" />
+					</tstamp>
+				</then>
+				<else>
+					<var name="timestamp.property" value="@{property}" />
+					<groovy>
+						project.setProperty(project.getProperty("timestamp.property"),
+						Long.toString(System.currentTimeMillis()));
+				</groovy>
+					<var name="timestamp.property" unset="true" />
+				</else>
+			</if>
+			<var name="@{property}" value="${@{property}}@{suffix}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="checkavailable">
+		<attribute name="file" />
+		<attribute name="type" />
+		<attribute name="logfile" default="" />
+		<sequential>
+			<if>
+				<not>
+					<available file="@{file}" type="@{type}" />
+				</not>
+				<then>
+					<var name="checkavailable.path" unset="true" />
+					<pathconvert property="checkavailable.path">
+						<path path="@{file}" />
+					</pathconvert>
+					<tee
+						message="${line.separator}ERROR: '${checkavailable.path}' @{type} does not exist!"
+						file="@{logfile}" />
+					<fail message="ERROR: '${checkavailable.path}' @{type} does not exist!" />
+				</then>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<presetdef name="checkdir">
+		<checkavailable type="dir" />
+	</presetdef>
+
+	<presetdef name="checkfile">
+		<checkavailable type="file" />
+	</presetdef>
+
+	<macrodef name="escapeslashes">
+		<attribute name="property" />
+		<attribute name="input" />
+		<sequential>
+			<var name="@{property}" unset="true" />
+			<propertyregex property="@{property}" input="@{input}"
+				regexp="\\" replace="\\\\\\\\" global="true" />
+			<property name="@{property}" value="@{input}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="envvar_readandset">
+		<attribute name="property" />
+		<attribute name="envvar" />
+		<attribute name="envvarpropname" default="@{property}.envvar.name" />
+		<attribute name="envvarpropvalue" default="@{property}.envvar.value" />
+		<attribute name="readfromenv" default="true" />
+		<attribute name="defaultvalue" default="" />
+		<attribute name="conditionvalue" default="@{defaultvalue}" />
+		<element name="conditions" optional="true" />
+		<sequential>
+			<var name="@{envvarpropvalue}" unset="true" />
+			<if>
+				<istrue value="@{readfromenv}" />
+				<then>
+					<condition property="@{envvarpropvalue}" value="${myenv.@{envvar}}">
+						<isset property="myenv.@{envvar}" />
+					</condition>
+				</then>
+			</if>
+			<condition property="@{envvarpropvalue}" value="${@{property}}">
+				<isset property="@{property}" />
+			</condition>
+			<condition property="@{envvarpropvalue}" value="@{conditionvalue}">
+				<and>
+					<not>
+						<isset property="@{envvarpropvalue}" />
+					</not>
+					<conditions />
+				</and>
+			</condition>
+			<property name="@{envvarpropvalue}" value="@{defaultvalue}" />
+			<if>
+				<length string="${@{envvarpropvalue}}" trim="true" when="greater"
+					length="0" />
+				<then>
+					<var name="@{envvarpropname}" value="@{envvar}" />
+				</then>
+				<else>
+					<var name="@{envvarpropname}" value="DUMMY_@{envvar}" />
+				</else>
+			</if>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="freeport">
+		<attribute name="property" />
+		<attribute name="default" />
+		<sequential>
+			<trycatch>
+				<try>
+					<for param="port" begin="@{default}" end="65535">
+						<sequential>
+							<if>
+								<not>
+									<socket server="localhost" port="@{port}" />
+								</not>
+								<then>
+									<property name="@{property}" value="@{port}" />
+									<fail />
+								</then>
+							</if>
+						</sequential>
+					</for>
+				</try>
+				<catch />
+			</trycatch>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="loop">
+		<attribute name="until" default="false" />
+		<attribute name="while" default="false" />
+		<attribute name="property" />
+		<element name="looptasks" implicit="true" />
+		<sequential>
+			<if>
+				<and>
+					<isfalse value="@{until}" />
+					<isfalse value="@{while}" />
+				</and>
+				<then>
+					<fail
+						message="Either 'until' or 'while' attribute must be true for 'loop' macrodef" />
+				</then>
+			</if>
+			<var name="@{property}.loop.done" value="__@{property}.loop.done__" />
+			<var name="@{property}.loop.error" unset="true" />
+			<var name="@{property}.loop.error.refid" unset="true" />
+			<trycatch property="@{property}.loop.error" reference="@{property}.loop.error.refid">
+				<try>
+					<var name="@{property}.loop.param" unset="true" />
+					<propertyregex property="@{property}.loop.param"
+						input="@{property}" regexp="_" replace="." global="true" />
+					<property name="@{property}.loop.param" value="@{property}" />
+					<for end="2147483646" param="${@{property}.loop.param}.loop.loopnum">
+						<sequential>
+							<if>
+								<or>
+									<and>
+										<istrue value="@{until}" />
+										<isset property="@{property}" />
+									</and>
+									<and>
+										<istrue value="@{while}" />
+										<not>
+											<isset property="@{property}" />
+										</not>
+									</and>
+								</or>
+								<then>
+									<fail message="${@{property}.loop.done}" />
+								</then>
+							</if>
+							<looptasks />
+						</sequential>
+					</for>
+				</try>
+				<catch>
+					<if>
+						<and>
+							<isset property="@{property}.loop.error" />
+							<length string="${@{property}.loop.error}" trim="true"
+								when="greater" length="0" />
+							<not>
+								<contains string="${@{property}.loop.error}" substring="${@{property}.loop.done}"
+									casesensitive="false" />
+							</not>
+						</and>
+						<then>
+							<if>
+								<isset property="@{property}.loop.error.refid" />
+								<then>
+									<throw refid="@{property}.loop.error.refid" />
+								</then>
+							</if>
+							<fail if="@{property}.loop.error">${@{property}.loop.error}</fail>
+						</then>
+					</if>
+				</catch>
+				<finally>
+					<var name="@{property}.loop.done" unset="true" />
+					<var name="@{property}.loop.error" unset="true" />
+					<var name="@{property}.loop.param" unset="true" />
+				</finally>
+			</trycatch>
+		</sequential>
+	</macrodef>
+</project>

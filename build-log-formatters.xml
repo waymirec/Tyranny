@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project basedir="." default="default" name="Tyranny-LogFormatters">
+
+	<!-- ============================== -->
+	<!-- Property Definitions           -->
+	<!-- ============================== -->
+	<property name="tyranny.logformatters.src.dir" value="${tyranny.src.dir}/log_formatters/main/java"/>
+	<property name="tyranny.logformatters.build.dir" value="${tyranny.build.dir}/log_formatters" />
+	<property name="tyranny.logformatters.jar.name" value="tyranny-logformatters.jar" />
+		
+	<macrodef name="build_logformatters">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Building Tyranny-LogFormatters${line.separator}#${line.separator}" />
+			<build_logformatters_src/>
+			<build_logformatters_jar/>
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="clean_logformatters">
+		<sequential>
+			<echo message="${line.separator}#${line.separator}# Cleaning Tyranny-LogFormatters${line.separator}#${line.separator}" />
+			<delete dir="${tyranny.logformatters.build.dir}" />
+			<delete file="${tyranny.dist.dir}/${tyranny.logformatters.jar.name}" />
+		</sequential>
+	</macrodef>
+
+	<macrodef name="build_logformatters_src">
+		<sequential>
+			<mkdir dir="${tyranny.logformatters.build.dir}"/>
+
+			<tyranny_javac destdir="${tyranny.logformatters.build.dir}" fork="true" memoryinitialsize="64m"
+				memorymaximumsize="256m">
+				<src>
+					<dirset dir="${tyranny.logformatters.src.dir}" />
+				</src>
+				<classpath>
+					<fileset dir="${tyranny.libs.dir}">
+						<include name="**/*.jar"/>
+					</fileset>
+				</classpath>
+			</tyranny_javac>			
+		</sequential>
+	</macrodef>
+	
+	<macrodef name="build_logformatters_jar">
+		<sequential>
+			<mkdir dir="${tyranny.dist.dir}"/>
+			<delete file="${tyranny.dist.dir}/${tyranny.logformatters.jar.name}"/>
+			<tyranny_jar destfile="${tyranny.dist.dir}/${tyranny.logformatters.jar.name}">
+				<fileset dir="${tyranny.logformatters.build.dir}"/>
+				<manifest>
+				</manifest>
+			</tyranny_jar>
+		</sequential>
+	</macrodef>
+</project>
