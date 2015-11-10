@@ -31,8 +31,8 @@ import net.waymire.tyranny.common.protocol.LoginserverAuthResult;
 import net.waymire.tyranny.common.protocol.LoginserverAuthOpcode;
 import net.waymire.tyranny.common.protocol.LoginserverOpcode;
 import net.waymire.tyranny.common.protocol.LoginserverPacket;
-import net.waymire.tyranny.common.protocol.LoginserverPacketProcessorDelegate;
 import net.waymire.tyranny.common.protocol.LoginserverProtocolProcessor;
+import net.waymire.tyranny.common.protocol.ProtocolProcessorDelegate;
 import net.waymire.tyranny.common.task.TaskFuture;
 import net.waymire.tyranny.common.task.TaskManager;
 import net.waymire.tyranny.common.util.Digest;
@@ -46,9 +46,9 @@ public class LoginserverAuthProcessors
 
 	static
 	{
-		delegates.put(LoginserverAuthOpcode.IDENT,      new LoginserverPacketProcessorDelegate(LoginserverAuthProcessors.class, "handleIdent"));
-		delegates.put(LoginserverAuthOpcode.CHAP_PROOF, new LoginserverPacketProcessorDelegate(LoginserverAuthProcessors.class, "handleChallengeProof"));
-		delegates.put(LoginserverAuthOpcode.READY,      new LoginserverPacketProcessorDelegate(LoginserverAuthProcessors.class, "handleReady"));
+		delegates.put(LoginserverAuthOpcode.IDENT,      new ProtocolProcessorDelegate<TcpSession,LoginserverPacket>(LoginserverAuthProcessors.class, "handleIdent", LoginserverPacket.class));
+		delegates.put(LoginserverAuthOpcode.CHAP_PROOF, new ProtocolProcessorDelegate<TcpSession,LoginserverPacket>(LoginserverAuthProcessors.class, "handleChallengeProof", LoginserverPacket.class));
+		delegates.put(LoginserverAuthOpcode.READY,      new ProtocolProcessorDelegate<TcpSession,LoginserverPacket>(LoginserverAuthProcessors.class, "handleReady", LoginserverPacket.class));
 	}
 
 	@LoginserverProtocolProcessor(opcode=LoginserverOpcode.AUTH)
@@ -59,13 +59,13 @@ public class LoginserverAuthProcessors
 		{
 			if(LogHelper.isDebugEnabled(LoginserverAuthProcessors.class))
 			{
-				LogHelper.debug(LoginserverAuthProcessors.class, "AUTH Opcode [{0}] Received From Server [{1}].", opcode, ((InetSocketAddress)session.getRemoteAddress()).getHostString());
+				LogHelper.debug(LoginserverAuthProcessors.class, "AUTH Opcode [{0}] Received From Endpoint [{1}].", opcode, ((InetSocketAddress)session.getRemoteAddress()).getHostString());
 			}
 			delegates.get(opcode).invoke(session,packet);
 		}
 		else
 		{
-			LogHelper.warning(LoginserverAuthProcessors.class, "Unknown AUTH Opcode [{0}] Received From Server [{1}].", opcode, ((InetSocketAddress)session.getRemoteAddress()).getHostString());
+			LogHelper.warning(LoginserverAuthProcessors.class, "Unknown AUTH Opcode [{0}] Received From Endpoint [{1}].", opcode, ((InetSocketAddress)session.getRemoteAddress()).getHostString());
 		}
 	}
 
@@ -182,6 +182,7 @@ public class LoginserverAuthProcessors
 			CHAP chap = (CHAP)session.getAttribute(LoginserverSessionAttributes.CHAP);
 			if(chap ==  null)
 			{
+				LogHelper.info(LoginserverAuthProcessors.class, "DEBUG::INVALID AUTH CREDENTIALS");
 				session.setAuthenticated(false);
 				session.setAttribute(TcpSessionAttributes.SESSION_STATE,TcpSessionState.ERR);
 				
@@ -217,7 +218,7 @@ public class LoginserverAuthProcessors
 			LoginserverPacket response = new LoginserverPacket(LoginserverOpcode.AUTH);
 			response.putInt(LoginserverAuthOpcode.CHAP_RESPONSE.intValue());
 			response.putBoolean(match);
-			response.prepare();			
+			response.prepare();	
 			session.send(response);
 			
 			if(match)
@@ -230,14 +231,18 @@ public class LoginserverAuthProcessors
 				GUID accountId = (GUID)session.getAttribute(LoginserverSessionAttributes.PLAYER_ACCT_ID);
 				Message authenticated = new StandardMessage(session, MessageTopics.LOGINSERVER_CLIENT_AUTHENTICATED);
 				authenticated.setProperty(MessageProperties.LOGINSERVER_CLIENT_ACCOUNT_ID, accountId);
-				AppRegistry.getInstance().retrieve(MessageManager.class).publish(authenticated);
+				AppRegistry.getInstance().retrieve(MessageManager.class).publish(authenticated);				
+				
+				LogHelper.info(LoginserverAuthProcessors.class, "DEBUG::AUTH SUCCESS");
 			}
 			else
 			{
+				LogHelper.info(LoginserverAuthProcessors.class, "DEBUG::INVALID CREDENTIALS");
 				response = new LoginserverPacket(LoginserverOpcode.AUTH_RESULT);
 				response.putShort(LoginserverAuthResult.INVALID_CREDENTIALS.shortValue());
 				response.prepare();
 				session.send(response);
+				session.close();
 			}
 		}
 		catch(Exception e)

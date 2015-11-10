@@ -77,7 +77,13 @@ public class AuthControlServerHandler extends BaseTcpServerHandler<AuthControlPa
 		disconnected.setProperty(MessageProperties.CLIENT_ADDRESS, ((InetSocketAddress)session.getRemoteAddress()).getHostString());
 		AppRegistry.getInstance().retrieve(MessageManager.class).publish(disconnected);
 		
-		deRegisterRealm(session);
+		GUID worldId = (GUID)session.getAttribute(AuthControlServerSessionAttributes.WORLD_ID);
+		if(worldId != null)
+		{
+			Message worldUnavailable = new StandardMessage(session, MessageTopics.WORLD_UNAVAILABLE);
+			worldUnavailable.setProperty(MessageProperties.WORLD_ID, worldId);
+			AppRegistry.getInstance().retrieve(MessageManager.class).publish(worldUnavailable);
+		}
 	}
 
 	@Override
@@ -108,14 +114,5 @@ public class AuthControlServerHandler extends BaseTcpServerHandler<AuthControlPa
 	{
 		MessageManager messageManager = AppRegistry.getInstance().retrieve(MessageManager.class);
 		messageManager.unload(this);
-	}
-
-	private void deRegisterRealm(TcpSession session)
-	{
-		GUID realmId = (GUID)session.getAttribute(AuthControlServerSessionAttributes.WORLD_ID);
-		if(realmId != null)
-		{
-			//AppRegistry.getInstance().retrieve(RealmManager.class).remove(realmId);
-		}
 	}
 }

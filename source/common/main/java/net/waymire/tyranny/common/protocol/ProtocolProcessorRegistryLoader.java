@@ -23,8 +23,8 @@ import net.waymire.tyranny.common.util.FileList;
  * @Param <P> The type of packets this handler will process
  */
 abstract public class ProtocolProcessorRegistryLoader<T,P extends Packet<? extends Opcode>> {	
-	private ProtocolProcessorRegistry<T,P> registry;
-	private String annotationName;
+	private final ProtocolProcessorRegistry<T,P> registry;
+	private final String annotationName;
 	
 	public ProtocolProcessorRegistryLoader(ProtocolProcessorRegistry<T,P> registry,String annotationName)
 	{
@@ -56,7 +56,6 @@ abstract public class ProtocolProcessorRegistryLoader<T,P extends Packet<? exten
 		
 		AnnotationScanner<File> scanner = new ByteCodeAnnotationScanner();
 		List<File> files = FileList.findBySuffix(SystemConstants.JAR_FILE_EXTENSION,dir);
-
 		List<AnnotationScanResult> results = scanner.scan(files, annotationName);
 		
 		if(results != null)

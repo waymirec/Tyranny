@@ -10,6 +10,7 @@ package net.waymire.tyranny.common.protocol;
 public interface ProtocolProcessorRegistry<T,P extends Packet<? extends Opcode>> {
 	public void start();
 	public void stop();
+	public boolean isRunning();
 	public void register(Opcode opcode,ProtocolProcessor<T,P> processor);
 	public void deregister(Opcode opcode,ProtocolProcessor<T,P> processor);
 	public void deregister(Opcode opcode);

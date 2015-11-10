@@ -86,13 +86,13 @@ public class LoginserverClient implements TcpClient, AutoInitializable
 			{
 				LogHelper.debug(this, "Initiating Connection To Loginserver: [{0}].", serverAddress.getHostString());
 			}
-			
+
 			Message connecting = new StandardMessage(this, MessageTopics.LOGINSERVER_CLIENT_CONNECTING);
 			connecting.setProperty(MessageProperties.LOGINSERVER_SERVER_ADDRESS, serverAddress);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(connecting);
-			
-			endpoint = serverAddress;
+
 			registry.start();
+			endpoint = serverAddress;
 			tcpClient.connect(serverAddress);
 		}
 		else
@@ -126,8 +126,8 @@ public class LoginserverClient implements TcpClient, AutoInitializable
 			Message disconnecting = new StandardMessage(this, MessageTopics.LOGINSERVER_CLIENT_DISCONNECTING);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(disconnecting);
 			
-			tcpClient.disconnect();
 			registry.stop();
+			tcpClient.disconnect();
 		}
 		else
 		{
@@ -171,6 +171,11 @@ public class LoginserverClient implements TcpClient, AutoInitializable
 	{
 		MessageManager messageManager = AppRegistry.getInstance().retrieve(MessageManager.class);
 		messageManager.unload(this);
+		
+		if(registry.isRunning())
+		{
+			registry.stop();
+		}
 	}
 
 	private TcpSessionMonitor initSessionMonitor()
@@ -217,6 +222,21 @@ public class LoginserverClient implements TcpClient, AutoInitializable
 	}
 	
 	@Locked(mode=LockMode.WRITE)
+	@MessageProcessor(topic=MessageTopics.LOGINSERVER_CLIENT_CONNECT_FAILED)
+	private void onLoginserverClientConnectFailed(Message message)
+	{
+		if(registry.isRunning())
+		{
+			registry.stop();
+		}
+	}
+
+	@MessageProcessor(topic=MessageTopics.LOGINSERVER_CLIENT_CONNECT_SUCCESS)
+	private void onLoginserverClientConnectSuccess(Message message)
+	{
+	}
+
+	@Locked(mode=LockMode.WRITE)
 	@MessageProcessor(topic=MessageTopics.LOGINSERVER_CLIENT_AUTH_SUCCESS)
 	private void onLoginserverClientAuthenticated(Message message)
 	{
@@ -227,6 +247,10 @@ public class LoginserverClient implements TcpClient, AutoInitializable
 	@MessageProcessor(topic=MessageTopics.LOGINSERVER_CLIENT_DISCONNECTED)
 	private void onLoginserverClientDisconnected(Message message)
 	{
+		if(registry.isRunning())
+		{
+			registry.stop();
+		}
 		sessionMonitor.remove((TcpSession)message.getSource());
 	}
 } 

@@ -6,28 +6,34 @@ import com.jme3.bullet.objects.PhysicsCharacter;
 
 public class AvatarAnimationHelper 
 {
-	private final AnimChannel animChannel;
+	private final AnimChannel baseAnimChannel;
+	private final AnimChannel topAnimChannel;
 	private final PhysicsCharacter physicBody;
 	
-	public AvatarAnimationHelper(PhysicsCharacter physicBody, AnimChannel animChannel)
+	public AvatarAnimationHelper(PhysicsCharacter physicBody, AnimChannel baseAnimChannel, AnimChannel topAnimChannel)
 	{
-		this.animChannel = animChannel;
+		this.baseAnimChannel = baseAnimChannel;
+		this.topAnimChannel = topAnimChannel;
 		this.physicBody = physicBody;
 	}
 	
 	protected void idle()
 	{
-		animChannel.setAnim("stand");
-		animChannel.setSpeed(0.5f);
+		baseAnimChannel.setAnim("IdleBase");
+		topAnimChannel.setAnim("IdleTop");
 	}
 	
 	protected boolean forward(boolean pressed)
 	{
 		if (pressed)
 		{
-			animChannel.setAnim("Walk");
-			animChannel.setSpeed(AvatarConstants.MOVE_WALK_SPEED * 2f);
-			animChannel.setLoopMode(LoopMode.Loop);
+			baseAnimChannel.setAnim("RunBase");
+			baseAnimChannel.setSpeed(AvatarConstants.MOVE_WALK_SPEED * 20f);
+			baseAnimChannel.setLoopMode(LoopMode.Loop);
+			
+			topAnimChannel.setAnim("RunTop");
+			topAnimChannel.setSpeed(AvatarConstants.MOVE_WALK_SPEED * 20f);
+			topAnimChannel.setLoopMode(LoopMode.Loop);
 			return true;
 		}
 		else
@@ -41,9 +47,14 @@ public class AvatarAnimationHelper
 	{
 		if (pressed)
 		{
-			animChannel.setAnim("Walk");
-			animChannel.setSpeed(AvatarConstants.MOVE_BACKWARD_SPEED * 2f);
-			animChannel.setLoopMode(LoopMode.Loop);
+			baseAnimChannel.setAnim("RunBase");
+			baseAnimChannel.setSpeed(AvatarConstants.MOVE_BACKWARD_SPEED * 20f);
+			baseAnimChannel.setLoopMode(LoopMode.Loop);
+			
+			topAnimChannel.setAnim("RunTop");
+			topAnimChannel.setSpeed(AvatarConstants.MOVE_BACKWARD_SPEED * 20f);
+			topAnimChannel.setLoopMode(LoopMode.Loop);
+			
 			return true;
 		}
 		else
@@ -94,6 +105,24 @@ public class AvatarAnimationHelper
 		}
 		else
 		{
+			return false;
+		}
+	}
+	
+	protected boolean attack(boolean pressed)
+	{
+		if(pressed)
+		{
+			topAnimChannel.setAnim("DrawSwords");
+			topAnimChannel.setLoopMode(LoopMode.DontLoop);
+			
+			topAnimChannel.setAnim("SliceVertical");
+			topAnimChannel.setLoopMode(LoopMode.DontLoop);
+			return true;
+		}
+		else
+		{
+			idle();
 			return false;
 		}
 	}

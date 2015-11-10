@@ -17,7 +17,6 @@ import java.util.jar.JarFile;
 import net.waymire.tyranny.common.annotation.AnnotationScanResult.ResultType;
 import net.waymire.tyranny.common.logging.LogHelper;
 import net.waymire.tyranny.common.util.ExceptionUtil;
-
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.FieldInfo;
@@ -90,9 +89,9 @@ public class ByteCodeAnnotationScanner implements AnnotationScanner<File>
 						}
 						jar.close();
 					}
-					catch(IOException ioe)
+					catch(Exception e)
 					{
-						LogHelper.severe(this, "Exception Scanning For Annotation [{0}]: {1}", annotation, ExceptionUtil.getStackTrace(ioe));
+						LogHelper.severe(this, "Exception Scanning For Annotation [{0}]: {1}", annotation, ExceptionUtil.getStackTrace(e));
 					}
 				}
 				else if(file.getName().toUpperCase().endsWith(CLASS_EXT))
@@ -106,9 +105,9 @@ public class ByteCodeAnnotationScanner implements AnnotationScanner<File>
 						scanFieldAnnotations(results,cf,annotation);
 						scanMethodAnnotations(results,cf,annotation);
 					}
-					catch(IOException ioe)
+					catch(Exception e)
 					{
-						LogHelper.severe(this, "Exception Scanning For Annotation [{0}]: {1}", annotation, ExceptionUtil.getStackTrace(ioe));
+						LogHelper.severe(this, "Exception Scanning For Annotation [{0}]: {1}", annotation, ExceptionUtil.getStackTrace(e));
 					}
 				}
 			}

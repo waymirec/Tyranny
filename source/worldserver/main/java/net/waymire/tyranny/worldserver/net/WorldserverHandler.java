@@ -24,12 +24,9 @@ import net.waymire.tyranny.worldserver.message.MessageTopics;
 
 public class WorldserverHandler extends BaseTcpServerHandler<WorldserverPacket> 
 {
-	private final Worldserver worldserver;
-	
 	public WorldserverHandler(ProtocolHandler<TcpSession,WorldserverPacket> protocolHandler,Worldserver worldserver)
 	{
 		super(protocolHandler);
-		this.worldserver = worldserver;
 	}
 	
 	@Override
@@ -44,9 +41,6 @@ public class WorldserverHandler extends BaseTcpServerHandler<WorldserverPacket>
 			
 			Task disconnect = new TcpSessionDisconnectTask(session);
 			session.setAttribute(TcpSessionAttributes.DISCONNECT_TASK,  disconnect);
-			
-			TaskFuture disconnectFuture = AppRegistry.getInstance().retrieve(TaskManager.class).schedule(disconnect,  5,  TimeUnit.SECONDS);
-			session.setAttribute(TcpSessionAttributes.DISCONNECT_FUTURE, disconnectFuture);
 			
 			TaskFuture future = AppRegistry.getInstance().retrieve(TaskManager.class).schedule(disconnect, 5, TimeUnit.SECONDS);
 			session.setAttribute(TcpSessionAttributes.DISCONNECT_FUTURE, future);
@@ -95,7 +89,7 @@ public class WorldserverHandler extends BaseTcpServerHandler<WorldserverPacket>
 		// the session. This is done to prevent any sort of attempt to inject malformed/exploitative 
 		// data into the network.
 		WorldserverOpcode opcode = packet.opcode();
-		if(!session.getAuthenticated() && !WorldserverOpcode.AUTH.equals(opcode))
+		if(!session.getAuthenticated() && !WorldserverOpcode.IDENT.equals(opcode))
 		{
 			LogHelper.warning(this, "Received a NON-AUTH Packet [{0}] from unauthorized client [{1}]. Disconnecting session.", opcode, ((InetSocketAddress)session.getRemoteAddress()).getHostString());
 			session.close();

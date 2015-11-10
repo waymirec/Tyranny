@@ -1,5 +1,6 @@
 package net.waymire.tyranny.authserver.persistence.model;
 
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
@@ -9,6 +10,7 @@ import net.waymire.tyranny.common.GUID;
 public class PlayerAccount 
 {
 	@Id
+	private ObjectId id;
 	private GUID accountId;
 	private String username;
 	private String password;

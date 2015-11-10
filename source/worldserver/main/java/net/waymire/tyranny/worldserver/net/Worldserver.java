@@ -106,14 +106,14 @@ public class Worldserver implements TcpServer, AutoInitializable
 		Message message = new StandardMessage(this, MessageTopics.WORLDSERVER_STARTING);
 		messageManager.publish(message);
 
-		LogHelper.info(this, "Starting Authserver...");
+		LogHelper.info(this, "Starting Worldserver...");
 		
 		running.set(true);
 		sessionMonitor.start();
 		registry.start();
 		tcpServer.startup();
 		
-		LogHelper.info(this, "Loginserver started.");
+		LogHelper.info(this, "Worldserver started.");
 		
 		message = new StandardMessage(this, MessageTopics.WORLDSERVER_STARTED);
 		messageManager.publish(message);
@@ -127,7 +127,7 @@ public class Worldserver implements TcpServer, AutoInitializable
 	{
 		MessageManager messageManager = AppRegistry.getInstance().retrieve(MessageManager.class);
 		
-		LogHelper.info(this, "Stopping Authserver...");
+		LogHelper.info(this, "Stopping Worldserver...");
 
 		Message message = new StandardMessage(this, MessageTopics.WORLDSERVER_STOPPING);
 		messageManager.publish(message);
@@ -137,7 +137,7 @@ public class Worldserver implements TcpServer, AutoInitializable
 		tcpServer.shutdown();
 		registry.stop();
 		
-		LogHelper.info(this, "Authserver stopped.");
+		LogHelper.info(this, "Worldserver stopped.");
 		
 		message = new StandardMessage(this, MessageTopics.WORLDSERVER_STOPPED);
 		messageManager.publish(message);

@@ -7,6 +7,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import net.waymire.tyranny.common.AppRegistry;
+import net.waymire.tyranny.common.GUID;
 import net.waymire.tyranny.common.annotation.LockField;
 import net.waymire.tyranny.common.annotation.Locked;
 import net.waymire.tyranny.common.annotation.Locked.LockMode;
@@ -26,13 +27,16 @@ import net.waymire.tyranny.common.net.TcpServer;
 import net.waymire.tyranny.common.net.TcpServerHandler;
 import net.waymire.tyranny.common.net.TcpSession;
 import net.waymire.tyranny.common.net.TcpSessionMonitor;
+import net.waymire.tyranny.common.protocol.AuthControlOpcode;
 import net.waymire.tyranny.common.protocol.AuthControlProtocolProcessor;
 import net.waymire.tyranny.common.protocol.AuthControlPacket;
 import net.waymire.tyranny.common.protocol.AuthControlPacketProcessorRegistryLoader;
 import net.waymire.tyranny.common.protocol.ProtocolHandler;
 import net.waymire.tyranny.common.protocol.TcpProtocolProcessorRegistry;
+import net.waymire.tyranny.common.util.InetAddressUtil;
 import net.waymire.tyranny.authserver.AuthserverEnvironment;
-import net.waymire.tyranny.authserver.WorldManager;
+import net.waymire.tyranny.authserver.WorldSessionManager;
+import net.waymire.tyranny.authserver.message.MessageProperties;
 import net.waymire.tyranny.authserver.message.MessageTopics;
 import net.waymire.tyranny.authserver.configuration.AuthConfigKey;
 import net.waymire.tyranny.authserver.configuration.AuthserverConfig;
@@ -68,8 +72,8 @@ public class AuthControlServer implements TcpServer, AutoInitializable
 		
 		AppRegistry registry = AppRegistry.getInstance();
 		
-		registry.register(WorldManager.class,  new WorldManager());
-		
+		registry.register(WorldSessionManager.class, new WorldSessionManager());
+
 		MessageManager messageManager = registry.retrieve(MessageManager.class);
 		messageManager.load(this);
 	}
@@ -99,13 +103,13 @@ public class AuthControlServer implements TcpServer, AutoInitializable
 		this.shutdown();
 	}
 	
-	@MessageProcessor(topic=MessageTopics.AUTHCONTROL_CLIENT_AUTHENTICATED)
+	@MessageProcessor(topic=MessageTopics.AUTHCONTROL_SERVER_CLIENT_AUTHENTICATED)
 	private void onClientAuthenticatedMessage(Message message)
 	{
 		sessionMonitor.add((TcpSession)message.getSource());
 	}
 	
-	@MessageProcessor(topic=MessageTopics.AUTHCONTROL_CLIENT_DISCONNECTED)
+	@MessageProcessor(topic=MessageTopics.AUTHCONTROL_SERVER_CLIENT_DISCONNECTED)
 	private void onClientDisconnected(Message message)
 	{
 		sessionMonitor.remove((TcpSession)message.getSource());

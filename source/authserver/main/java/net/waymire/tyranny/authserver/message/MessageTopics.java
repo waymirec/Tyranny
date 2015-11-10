@@ -8,9 +8,7 @@ public interface MessageTopics
 	public static final String AUTHCONTROL_SERVER_STOPPED = "authcontrol.server.stopped";
 	public static final String AUTHCONTROL_SERVER_CLIENT_CONNECTED = "authcontrol.server.client.connected";
 	public static final String AUTHCONTROL_SERVER_CLIENT_DISCONNECTED = "authcontrol.server.client.disconnected";
-	public static final String AUTHCONTROL_CLIENT_CONNECTED = "authcontrol.client.connected";
-	public static final String AUTHCONTROL_CLIENT_DISCONNECTED = "authcontrol.client.disconnected";
-	public static final String AUTHCONTROL_CLIENT_AUTHENTICATED = "authcontrol.client.authenticated";
+	public static final String AUTHCONTROL_SERVER_CLIENT_AUTHENTICATED = "authcontrol.client.authenticated";
 
 	public static final String LOGINSERVER_STARTING = "loginserver.starting";
 	public static final String LOGINSERVER_STARTED = "loginserver.started";
@@ -25,4 +23,6 @@ public interface MessageTopics
 	public static final String SYSTEM_STOPPING = "system.stopping";
 	public static final String SYSTEM_STOPPED = "system.stopped";
 
+	public static final String WORLD_AVAILABLE = "world.available";
+	public static final String WORLD_UNAVAILABLE = "world.unavailable";
 }

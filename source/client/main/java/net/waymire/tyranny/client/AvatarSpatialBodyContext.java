@@ -25,10 +25,10 @@ public class AvatarSpatialBodyContext extends AbstractSpatialBodyContext
 	@Override
 	public void initialize(AppStateManager stateManager, Application app)
 	{
-		this.avatarMesh.setLocalScale(new Vector3f(1f, 1f, 1f));
-		this.avatarMesh.setLocalTranslation(this.correction);
-		this.avatar.attachChild(this.avatarMesh);
-		this.rootNode.attachChild(this.avatar);
+		avatarMesh.setLocalScale(new Vector3f(1f, 1f, 1f));
+		avatarMesh.setLocalTranslation(correction);
+		avatar.attachChild(avatarMesh);
+		rootNode.attachChild(avatar);
 	}
 	
 	public Node getAvatar()

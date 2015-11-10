@@ -14,20 +14,11 @@ public enum LoginserverOpcode implements Opcode {
 	CLOCK_SYNC_REQ(20),
 	CLOCK_SYNC_RES(21),
 	
-	CHAR_LIST_REQ(50),
-	CHAR_LIST(51),
-	CHAR_CREATE_REQ(52),
-	CHAR_CREATED(53),
-	CHAR_CREATE_FAILED(54),
-	CHAR_DELETE_REQ(55),
-	CHAR_DELETED(56),
-	CHAR_DELETE_FAILED(57),
-
-	ENTER_WORLD(70),
+	WORLD_INFO(30),
 	
-	GO_IDENT(80),
-	GO_TRANSFORM(81),
-	GO_MOVE(82),
+	GO_IDENT(40),
+	GO_TRANSFORM(41),
+	GO_MOVE(42),
 	;
 	
 	private static final Map<Integer,LoginserverOpcode> lookup =  new HashMap<Integer,LoginserverOpcode>();

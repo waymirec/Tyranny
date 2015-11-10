@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="472.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="net.waymire.tyranny.client.launcher.MainGUIController">
+   <children>
+      <ScrollPane prefHeight="408.0" prefWidth="900.0" />
+      <Pane layoutY="408.0" prefHeight="32.0" prefWidth="900.0">
+         <children>
+            <TextField fx:id="usernameField" layoutX="78.0" layoutY="6.0" prefHeight="25.0" prefWidth="253.0" />
+            <Label fx:id="usernameLabel" layoutX="21.0" layoutY="8.0" text="Login:">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Label fx:id="passwordLabel" layoutX="355.0" layoutY="8.0" text="Password:">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <PasswordField fx:id="passwordField" layoutX="450.0" layoutY="6.0" prefHeight="25.0" prefWidth="246.0" />
+            <Button fx:id="playButton" layoutX="727.0" layoutY="5.0" mnemonicParsing="false" onAction="#handlePlayButtonAction" prefHeight="25.0" prefWidth="115.0" text="Play">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Button>
+         </children>
+      </Pane>
+      <Separator layoutY="442.0" prefHeight="0.0" prefWidth="900.0" />
+      <Pane layoutX="-6.0" layoutY="444.0" prefHeight="29.0" prefWidth="900.0">
+         <children>
+            <Text fx:id="statusText" layoutX="14.0" layoutY="19.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Status..." wrappingWidth="882.82177734375" />
+         </children>
+      </Pane>
+   </children>
+</Pane>

@@ -17,6 +17,7 @@ import net.waymire.tyranny.common.delegate.Delegate;
 import net.waymire.tyranny.common.delegate.DelegateImpl;
 import net.waymire.tyranny.common.logging.LogHelper;
 import net.waymire.tyranny.common.net.TcpSession;
+import net.waymire.tyranny.common.util.TimerUtil;
 
 public class TcpProtocolProcessorRegistry<P extends Packet<? extends Opcode>> implements ProtocolHandler<TcpSession,P>,ProtocolProcessorRegistry<TcpSession,P> 
 {
@@ -47,6 +48,7 @@ public class TcpProtocolProcessorRegistry<P extends Packet<? extends Opcode>> im
 		if(!running.get())
 		{
 			queue.start();
+			running.set(true);
 		}
 		else
 		{
@@ -60,14 +62,24 @@ public class TcpProtocolProcessorRegistry<P extends Packet<? extends Opcode>> im
 	{
 		if(running.get())
 		{
+			running.set(false);
+			while(queue.size() > 0)
+			{
+				TimerUtil.sleep(500);
+			}
 			queue.stop();
-			handlers.clear();
 		}
 		else
 		{
 			throw new IllegalStateException("service is not running.");
 		}
 	}
+	
+	@Override
+	public boolean isRunning()
+    {
+		return running.get();
+    }
 	
 	@Override
 	@Locked(mode=LockMode.WRITE)
@@ -107,8 +119,11 @@ public class TcpProtocolProcessorRegistry<P extends Packet<? extends Opcode>> im
 	@Locked(mode=LockMode.WRITE)
 	public void handle(TcpSession session,P packet)
 	{
-		QueueItem item = new QueueItem(session,packet);
-		queue.put(item);
+		if(running.get())
+		{
+			QueueItem item = new QueueItem(session,packet);
+			queue.put(item);
+		}
 	}
 	
 	@Override
@@ -139,6 +154,10 @@ public class TcpProtocolProcessorRegistry<P extends Packet<? extends Opcode>> im
 				}
 				handler.process(session, packet);
 			}
+		}
+		else
+		{
+			LogHelper.info(this, "No handler registered for opcode [{0}].", opcode);
 		}
 	}
 	

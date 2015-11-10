@@ -17,12 +17,18 @@ public interface MessageTopics
 	public static final String WORLDSERVER_STARTED = "worldserver.started";
 	public static final String WORLDSERVER_STOPPING = "worldserver.stopping";
 	public static final String WORLDSERVER_STOPPED = "worldserver.stopped";
+	
 	public static final String WORLDSERVER_CLIENT_CONNECTED = "worldserver.client.connected";
 	public static final String WORLDSERVER_CLIENT_DISCONNECTED = "worldserver.client.disconnected";
+	public static final String WORLDSERVER_CLIENT_IDENT_SUCCESS = "worldserver.client.ident.success";
+	public static final String WORLDSERVER_CLIENT_IDENT_FAILED = "worldserver.client.ident.failed";
 	
 	public static final String SYSTEM_STARTING = "system.starting";
 	public static final String SYSTEM_STARTED = "system.started";
 	public static final String SYSTEM_STOPPING = "system.stopping";
 	public static final String SYSTEM_STOPPED = "system.stopped";
+	
+	public static final String PLAYER_ENTER_WORLD = "player.world.enter";
+	public static final String PLAYER_LEAVE_WORLD = "player.world.leave";
 
 }

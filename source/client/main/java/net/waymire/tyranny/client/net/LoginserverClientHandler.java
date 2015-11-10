@@ -15,6 +15,7 @@ import net.waymire.tyranny.common.CHAP;
 import net.waymire.tyranny.common.Environment;
 import net.waymire.tyranny.common.annotation.Locked;
 import net.waymire.tyranny.common.annotation.Locked.LockMode;
+import net.waymire.tyranny.common.auth.UsernamePasswordCredentials;
 import net.waymire.tyranny.common.logging.LogHelper;
 import net.waymire.tyranny.common.message.Message;
 import net.waymire.tyranny.common.message.MessageManager;
@@ -36,9 +37,7 @@ public class LoginserverClientHandler implements TcpClientHandler<LoginserverPac
 	
 	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 	private ProtocolHandler<TcpSession,LoginserverPacket> protocolHandler;
-	
-	private String username = null;
-	private String password = null;
+	private UsernamePasswordCredentials credentials;
 
 	public LoginserverClientHandler(ProtocolHandler<TcpSession,LoginserverPacket> protocolHandler)
 	{
@@ -88,7 +87,7 @@ public class LoginserverClientHandler implements TcpClientHandler<LoginserverPac
 		ident.put((byte)1);
 		ident.putShort((short)0);
 		ident.putInt(12345);
-		ident.putString(this.username);
+		ident.putString(credentials.getUsername());
 		ident.prepare();
 		
 		session.send(ident);
@@ -171,8 +170,9 @@ public class LoginserverClientHandler implements TcpClientHandler<LoginserverPac
 	@MessageProcessor(topic=MessageTopics.LOGINSERVER_CLIENT_LOGIN_REQUEST)
 	private void onLoginRequestMessage(Message message)
 	{
-		this.username = (String)message.getProperty(MessageProperties.LOGINSERVER_LOGIN_USERNAME);
-		this.password = (String)message.getProperty(MessageProperties.LOGINSERVER_LOGIN_PASSWORD);
+		String username = (String)message.getProperty(MessageProperties.LOGINSERVER_LOGIN_USERNAME);
+		String password = (String)message.getProperty(MessageProperties.LOGINSERVER_LOGIN_PASSWORD);
+		this.credentials = new UsernamePasswordCredentials(username,password);
 	}
 	
 	@MessageProcessor(topic=MessageTopics.LOGINSERVER_AUTH_CHALLENGE)
@@ -182,7 +182,7 @@ public class LoginserverClientHandler implements TcpClientHandler<LoginserverPac
 		final byte[] challenge = (byte[])message.getProperty(MessageProperties.LOGINSERVER_AUTH_CHALLENGE_BYTES);
 		
 		CHAP chap = new CHAP();
-		chap.setSecret(password);
+		chap.setSecret(credentials.getPassword());
 		chap.setChallenge(challenge);
 		
 		LoginserverPacket response = new LoginserverPacket(LoginserverOpcode.AUTH);
@@ -196,14 +196,14 @@ public class LoginserverClientHandler implements TcpClientHandler<LoginserverPac
 	private void onAuthSuccessMessage(Message message)
 	{
 		TcpSession session = (TcpSession)message.getSource();
-		LogHelper.info(this, "User [{0}] at session [{1}] successfully authenticated.", this.username, session);
+		LogHelper.info(this, "User [{0}] at session [{1}] successfully authenticated.", credentials.getUsername(), session);
 	}
 	
 	@MessageProcessor(topic=MessageTopics.LOGINSERVER_CLIENT_AUTH_FAILED)
 	private void onAuthFailedMessage(Message message)
 	{
 		TcpSession session = (TcpSession)message.getSource();
-		LogHelper.info(this, "User [{0}] at session [{1}] failed to authenticate. Disconnecting...", this.username, session);
+		LogHelper.info(this, "User [{0}] at session [{1}] failed to authenticate. Disconnecting...", credentials.getUsername(), session);
 		session.close();
 	}
 }

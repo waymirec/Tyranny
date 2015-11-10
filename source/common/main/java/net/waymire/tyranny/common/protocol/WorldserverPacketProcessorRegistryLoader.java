@@ -20,11 +20,16 @@ public class WorldserverPacketProcessorRegistryLoader extends ProtocolProcessorR
 			Class<?> clazz = Class.forName(result.getClassName());
 			WorldserverOpcode opcode = WorldserverOpcode.valueOf((String)result.getMember("opcode"));
 
-			ProtocolProcessor<TcpSession,WorldserverPacket> delegate = new ProtocolProcessorDelegate<TcpSession,WorldserverPacket>(clazz,result.getTargetName());
+			ProtocolProcessor<TcpSession,WorldserverPacket> delegate = new ProtocolProcessorDelegate<TcpSession,WorldserverPacket>(clazz,result.getTargetName(), new Class<?>[] { TcpSession.class, WorldserverPacket.class });
+			if(LogHelper.isDebugEnabled(this))
+			{
+				LogHelper.debug(this,  "Registering packet handler [{0}.{1}] for opcode [{2}].", result.getClassName(),result.getTargetName(), opcode);
+			}
 			registry.register(opcode, delegate);
 		}
 		catch(Exception e)
 		{
+			e.printStackTrace();
 			LogHelper.severe(this, "Failed to load protocol handler {0}.{1}",new Object[]{result.getClassName(),result.getTargetName()});
 			LogHelper.severe(this, ExceptionUtil.getReason(e));
 			LogHelper.severe(this, ExceptionUtil.getStackTrace(e));

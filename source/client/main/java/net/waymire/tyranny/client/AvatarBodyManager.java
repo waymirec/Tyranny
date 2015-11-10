@@ -10,28 +10,27 @@ import com.jme3.input.InputManager;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 
-public class AvatarBodyManager extends AbstractPhysicBodyContext 
+public class AvatarBodyManager extends AbstractPhysicBodyContext
 {
 	@SuppressWarnings("unused")
-	private final Node rootNode;
-	
+	private InputManager inputManager;
+
 	@SuppressWarnings("unused")
-	private final CameraContext cameraContext;
+	private final Node rootNode;
+		
+	private final CameraContext cameraContext;	
 	private final Camera cam;
 	private final ChaseCamera chaseCam;
-	private final ThirdPersonCamera thirdPersonCamera;
 	
 	private final AvatarPhysicBodyContext physicBodyContext;
 	private final AvatarSpatialBodyContext spatialBodyContext;
-	
-	private final PhysicsCharacter physicBody;
-	private final Node avatar;
+
+	private PhysicsCharacter physicBody;
+	private Node avatar;
 	private final BetterCharacterControl characterControl;
 	
 	private final PlayerInputActionListener playerInputListener;
 	
-	@SuppressWarnings("unused")
-	private InputManager inputManager;
 
 	public AvatarBodyManager(AssetManager assetManager, Node rootNode, CameraContext cameraContext)
 	{
@@ -39,21 +38,17 @@ public class AvatarBodyManager extends AbstractPhysicBodyContext
 		
 		this.spatialBodyContext = new AvatarSpatialBodyContext(assetManager, rootNode);
 		this.physicBodyContext = new AvatarPhysicBodyContext();
-		
+
 		this.physicBody = physicBodyContext.getPhysicBody();
-		
 		this.avatar = spatialBodyContext.getAvatar();
+		
 		this.characterControl = new BetterCharacterControl(AvatarConstants.COLLISION_SHAPE_RADIUS, AvatarConstants.COLLISION_SHAPE_RADIUS * 2, AvatarConstants.PHYSIC_BODY_MASS);
 
-		this.playerInputListener = new PlayerInputActionListener(this.physicBody, this.spatialBodyContext.getAvatarMesh());
+		this.playerInputListener = new PlayerInputActionListener(physicBodyContext.getPhysicBody(), spatialBodyContext.getAvatarMesh());
 		
 		this.cameraContext = cameraContext;
 		this.cam = cameraContext.getCam();
-		this.chaseCam = cameraContext.getChaseCam();
-		
-		this.thirdPersonCamera = cameraContext.getThirdPersonCamera();
-		thirdPersonCamera.setSpatial(avatar);
-		thirdPersonCamera.setPhysicsSpace(physicBodyContext.getBulletAppState().getPhysicsSpace());		
+		this.chaseCam = cameraContext.getChaseCam();		
 	}
 	
 	@Override
@@ -66,9 +61,9 @@ public class AvatarBodyManager extends AbstractPhysicBodyContext
 		stateManager.attach(this.physicBodyContext);
 		stateManager.attach(this.playerInputListener);
 		
-		this.avatar.addControl(new AvatarBodyMoveControl(playerInputListener, physicBody, cam));
-		this.avatar.addControl(chaseCam);
-		this.avatar.addControl(characterControl);
+		avatar.addControl(new AvatarBodyMoveControl(playerInputListener, physicBody, cam));
+		avatar.addControl(chaseCam);
+		avatar.addControl(characterControl);		
 	}
 	
 	@Override

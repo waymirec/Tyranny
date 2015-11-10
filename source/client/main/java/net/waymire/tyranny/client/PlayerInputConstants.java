@@ -6,6 +6,8 @@ public interface PlayerInputConstants
 	public static final String MOVE_RIGHT = "MOVE_RIGHT";
 	public static final String MOVE_FORWARD = "MOVE_FORWARD";
 	public static final String MOVE_BACKWARD = "MOVE_BACKWARD";
+	public static final String MOVE_ROT_LEFT = "MOVE_ROT_LEFT";
+	public static final String MOVE_ROT_RIGHT = "MOVE_RIGHT_RIGHT";
 	public static final String MOVE_STRAFE = "MOVE_STRAFE";
 	public static final String MOVE_RUN = "MOVE_RUN";
 	public static final String MOVE_JUMP = "MOVE_JUMP";

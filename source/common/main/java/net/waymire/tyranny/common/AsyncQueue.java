@@ -59,7 +59,7 @@ public class AsyncQueue<T>
         		{
         			LogHelper.debug(this, "Starting Task: [{0}].", task.getName());
         		}
-        		future = taskManager.scheduleWithFixedDelay(task, 100, 100, TimeUnit.MILLISECONDS);
+        		future = taskManager.scheduleWithFixedDelay(task, 10, 100, TimeUnit.MILLISECONDS);
         	}
             else
             {
@@ -129,6 +129,19 @@ public class AsyncQueue<T>
         }
     }
 
+    public int size()
+    {
+    	lock.readLock().lock();
+    	try
+    	{
+    		return queue.size();
+    	}
+    	finally
+    	{
+    		lock.readLock().unlock();
+    	}
+    }
+    
     @Override
     public String toString()
     {

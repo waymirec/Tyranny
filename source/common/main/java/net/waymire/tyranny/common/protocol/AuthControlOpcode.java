@@ -14,9 +14,8 @@ public enum AuthControlOpcode implements Opcode {
 	CLOCK_SYNC_REQ(20),
 	CLOCK_SYNC_RES(21),
 	
-	AUTH_PLAYER(30),
-	AUTH_PLAYER_ACK(31),
-	AUTH_PLAYER_NACK(32),
+	PLAYER_IDENT_TOKEN_REQ(30),
+	PLAYER_IDENT_TOKEN_RSP(31),
 	;
 	
 	private static final Map<Integer,AuthControlOpcode> lookup =  new HashMap<Integer,AuthControlOpcode>();

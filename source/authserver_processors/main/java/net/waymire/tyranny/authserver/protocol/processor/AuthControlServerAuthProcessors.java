@@ -2,7 +2,6 @@ package net.waymire.tyranny.authserver.protocol.processor;
 
 import java.net.InetAddress;
 
-import net.waymire.tyranny.authserver.WorldManager;
 import net.waymire.tyranny.authserver.configuration.AuthConfigKey;
 import net.waymire.tyranny.authserver.configuration.AuthserverConfig;
 import net.waymire.tyranny.authserver.message.MessageProperties;
@@ -86,20 +85,21 @@ public class AuthControlServerAuthProcessors
 		world.setWorldname(worldname);
 		world.setInetAddress(ip);
 		world.setPort(port);
-		AppRegistry.getInstance().retrieve(WorldManager.class).put(worldId, world);
 		
 		session.setAuthenticated(true);
 		session.setAttribute(TcpSessionAttributes.SESSION_STATE,TcpSessionState.READY);
 		session.setAttribute(AuthControlServerSessionAttributes.WORLD_ID, worldId);
-		
+		session.setAttribute(AuthControlServerSessionAttributes.WORLD, world);
+
 		AuthControlPacket response = new AuthControlPacket(AuthControlOpcode.AUTH_RESULT);
 		response.put(AuthControlIdentResponseCode.SUCCESS.byteValue());
 		response.prepare();
 		session.send(response);
 		
-		Message authenticated = new StandardMessage(session, MessageTopics.AUTHCONTROL_CLIENT_AUTHENTICATED);
-		authenticated.setProperty(MessageProperties.AUTH_CONTROL_CLIENT_DETAILS, world);
-		AppRegistry.getInstance().retrieve(MessageManager.class).publish(authenticated);
+		Message authenticated = new StandardMessage(session, MessageTopics.AUTHCONTROL_SERVER_CLIENT_AUTHENTICATED);
+		authenticated.setProperty(MessageProperties.WORLD_ID, world.getGUID());
+		authenticated.setProperty(MessageProperties.WORLD, world);
+		AppRegistry.getInstance().retrieve(MessageManager.class).publish(authenticated);		
 	}
 	
 }

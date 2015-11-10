@@ -7,14 +7,12 @@ public class ClientEnvironment
     private final String root;
 
 	private final String libraryPath;
-	private final String configPath;
 	private final String dataPath;
 	private final String binaryPath;
 	private final String processorPath;
 	private final String logPath;
 
 	private final String fullLibraryPath;
-	private final String fullConfigPath;
 	private final String fullDataPath;
 	private final String fullBinaryPath;
 	private final String fullProcessorPath;
@@ -25,7 +23,6 @@ public class ClientEnvironment
         this.root = path;
 
 		this.libraryPath = "lib";
-		this.configPath = "conf";
 		this.binaryPath = "bin";
 		this.dataPath = "data";
 		this.processorPath = "processors";
@@ -33,7 +30,6 @@ public class ClientEnvironment
 
         final String prefix = root.concat(Environment.getFileSeparator());
 		this.fullLibraryPath = prefix.concat(libraryPath);
-		this.fullConfigPath = prefix.concat(configPath);
 		this.fullDataPath = prefix.concat(dataPath);
 		this.fullBinaryPath = prefix.concat(binaryPath);
 		this.fullProcessorPath = prefix.concat(processorPath);
@@ -45,11 +41,6 @@ public class ClientEnvironment
 		return libraryPath;
 	}
 
-	public String getConfigPath() 
-	{
-		return configPath;
-	}
-	
 	public String getDataPath() 
 	{
 		return dataPath;
@@ -75,11 +66,6 @@ public class ClientEnvironment
 		return fullLibraryPath;
 	}
 
-	public String getFullConfigPath() 
-	{
-		return fullConfigPath;
-	}
-	
 	public String getFullDataPath() 
 	{
 		return fullDataPath;

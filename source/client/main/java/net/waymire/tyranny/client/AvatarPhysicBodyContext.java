@@ -24,7 +24,6 @@ public class AvatarPhysicBodyContext extends AbstractPhysicBodyContext
 		this.physicBody.setFallSpeed(32);
 		this.physicBody.setGravity(32);
 		this.physicBody.setPhysicsLocation(new Vector3f(0, 1000, 0));
-		
 		getBulletAppState().getPhysicsSpace().add(this.physicBody);
 	}
 	

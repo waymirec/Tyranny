@@ -156,9 +156,15 @@ public class TraceTransformer implements ClassFileTransformer
 					String exiting = String.format("Finished executing Method: %s.%s(%s)", m.getClassName(),m.getMethodName(), m.getSignature());
 
 					StringBuffer body = new StringBuffer();
+					body.append(String.format("{ try { System.out.println(\"%s\"); ", entering));
+					body.append("$_ = $proceed($$);");
+					body.append(String.format("} finally { System.out.println(\"%s\"); }}", exiting ));					
+					
+					/*
 					body.append(String.format("{ try { if(%s.isLoggable(java.util.logging.Level.FINER)) %s.log(java.util.logging.Level.FINER, \"%s\"); ", logger, logger, entering ));
 					body.append("$_ = $proceed($$);");
 					body.append(String.format("} finally { if(%s.isLoggable(java.util.logging.Level.FINER)) %s.log(java.util.logging.Level.FINER, \"%s\"); }}", logger, logger, exiting ));
+					*/
 					m.replace(body.toString());
 				}
 			};
@@ -171,8 +177,12 @@ public class TraceTransformer implements ClassFileTransformer
 		
 		String entering = String.format("Entering Method: %s.%s(%s)", method.getDeclaringClass().getName(),method.getName(), method.getSignature());
 		String exiting = String.format("Exiting Method: %s.%s(%s)", method.getDeclaringClass().getName(),method.getName(), method.getSignature());
+		method.insertBefore(String.format("{ System.out.println(\"%s\"); }", entering));
+		method.insertAfter(String.format("{ System.out.println(\"%s\"); }", exiting));
+		/*
 		method.insertBefore(String.format("{ if(%s.isLoggable(java.util.logging.Level.FINER)) %s.log(java.util.logging.Level.FINER, \"%s\"); }", logger, logger, entering ));
 		method.insertAfter(String.format("{ if(%s.isLoggable(java.util.logging.Level.FINER)) %s.log(java.util.logging.Level.FINER, \"%s\"); }", logger, logger, exiting ), true);
+		*/
 	}
 	
 	/*

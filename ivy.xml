@@ -6,6 +6,7 @@
 		<dependency org="commons-logging" name="commons-logging" rev="1.1.1" conf="default->master"/>
 		<dependency org="commons-codec" name="commons-codec" rev="1.7" conf="default->master"/>
 		<dependency org="commons-io" name="commons-io" rev="2.4" conf="default->master"/>
+		<dependency org="org.apache.commons" name="commons-collections4" rev="4.0" conf="default->master"/>
 		<dependency org="org.slf4j" name="slf4j-api" rev="1.7.2" conf="default->master"/>
 		<dependency org="org.slf4j" name="slf4j-simple" rev="1.7.2" conf="default->master"/>
 		<dependency org="org.javassist" name="javassist" rev="3.18.0-GA" conf="default->master"/>
@@ -24,6 +25,16 @@
 		<dependency org="org.mongodb.morphia" name="morphia-guice-plug" rev="0.108" conf="default->master"/>
 		<dependency org="org.mongodb.morphia" name="morphia-entityscanner-plug" rev="0.108" conf="default->master"/>
 		<dependency org="asm" name="asm" rev="3.3.1" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-core" rev="3.0.10" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-effects" rev="3.0.10" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-plugins" rev="3.0.10" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-jogg" rev="3.0.10" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-jbullet" rev="3.0.10" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-bullet" rev="3.0.10" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-bullet-natives" rev="3.0.10" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-desktop" rev="3.0.10" conf="default->master"/>
+		<dependency org="com.jme3" name="jme3-lwjgl" rev="3.0.10" conf="default->master"/>
+		<!-- <dependency org="com.jme3" name="jme3-lwjgl-natives" rev="3.0.10" conf="default->master"/> -->
 	</dependencies>
 </ivy-module>
 

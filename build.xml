@@ -26,7 +26,6 @@
 
 	<import file="build-common.xml"/>
 	<import file="build-instrumentation.xml"/>
-	<import file="build-jme.xml" />
 	<import file="build-log-formatters.xml"/>
 	<import file="build-mongo.xml"/>
 	<import file="build-authserver.xml"/>
@@ -77,7 +76,6 @@
 	<target name="dependencies" depends="init-ivy" description="Retrieve dependencies">
 		<mkdir dir="${tyranny.libs.dir}" />
 		<ivy:retrieve pattern="${tyranny.libs.dir}/[artifact]-[revision].[ext]" />
-		<!-- <retrieve_jme3/>  -->
 	</target>
 
 	<!-- ================================== -->

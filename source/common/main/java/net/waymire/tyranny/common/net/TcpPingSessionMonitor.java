@@ -61,6 +61,7 @@ abstract public class TcpPingSessionMonitor extends TcpSessionMonitor
 			}
 		};
 		
+		task.setName(this.toString());
 		return task;
 	}
 }

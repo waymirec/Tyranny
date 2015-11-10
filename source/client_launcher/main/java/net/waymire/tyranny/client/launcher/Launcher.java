@@ -21,8 +21,8 @@ public final class Launcher
 {
 	private static final String APP_REGISTRY_CLASSNAME = "net.waymire.tyranny.common.AppRegistry";
 	private static final String CLIENT_ENVIRONMENT_CLASSNAME = "net.waymire.tyranny.client.ClientEnvironment";
-	private static final String CLIENT_MASTER_CLASSNAME = "net.waymire.tyranny.client.ClientMaster";
-	private static final String CLIENT_MASTER_METHODNAME = "main";
+	private static final String MAIN_APP_CLASSNAME = "net.waymire.tyranny.client.launcher.MainApp";
+	private static final String MAIN_APP_METHODNAME = "main";
 	private static final String CACHING_CLASSLOADER_CLASSNAME = "net.waymire.tyranny.common.classloader.CachingClassLoader";
 	private static final String CLASSUTIL_CLASSNAME = "net.waymire.tyranny.common.util.ClassUtil";
 	private static final String FILE_CLASSLOADER_CLASSNAME = "net.waymire.tyranny.common.classloader.FileClassLoader";
@@ -51,7 +51,7 @@ public final class Launcher
 		initSystemClassLoader();
 		initBootClassLoader();
 		initClientEnvironment();
-		launchMaster();
+		launchMainApp();
 	}
 
 	private void initSystemClassLoader()
@@ -80,6 +80,7 @@ public final class Launcher
 			            return FileVisitResult.CONTINUE;
 			        }
 			});
+			
 			systemClassLoader = new URLClassLoader(urls.toArray(new URL[0]), contextClassLoader);
 			Thread.currentThread().setContextClassLoader(systemClassLoader);
 		}
@@ -105,7 +106,8 @@ public final class Launcher
 			Method fileListMethod = fileListClass.getMethod("findBySuffix",new Class[]{String.class,File[].class});
 			@SuppressWarnings("unchecked")
 			List<File> jars = (List<File>)fileListMethod.invoke(null, ".jar", new File[]{lib, proc});
-			
+			jars.add(new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath()));
+
 			for(File jar : jars)
 			{
 				fileClassLoaderClass.getMethod("addFile", new Class[]{File.class}).invoke(fileLoader, jar);
@@ -115,7 +117,7 @@ public final class Launcher
 			Constructor<?> filteringClassLoaderConstructor = filteringClassLoaderClass.getConstructor(new Class[]{ClassLoader.class});
 			ClassLoader filteringLoader = (ClassLoader)filteringClassLoaderConstructor.newInstance(fileLoader);
 			
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings({ "unchecked", "rawtypes" })
 			Class<Enum> filterTypeClass = (Class<Enum>)systemClassLoader.loadClass(FILTER_TYPE_CLASSNAME);
 			
 			@SuppressWarnings("unchecked")
@@ -160,7 +162,7 @@ public final class Launcher
 		try
 		{
 			Object environment = loadClientEnvironment(Thread.currentThread().getContextClassLoader());
-			File conf = new File((String)environment.getClass().getDeclaredMethod("getFullConfigPath").invoke(environment));
+			File conf = new File((String)environment.getClass().getDeclaredMethod("getFullDataPath").invoke(environment));
 			
 			Class<?> classUtilClass = Thread.currentThread().getContextClassLoader().loadClass(CLASSUTIL_CLASSNAME);
 			Method getMethod = classUtilClass.getMethod("getMethod", Class.class, String.class, Class[].class);
@@ -182,12 +184,12 @@ public final class Launcher
 		}
 	}
 	
-	private void launchMaster()
+	private void launchMainApp()
 	{
 		try
 		{
-			Class<?> masterClass = Thread.currentThread().getContextClassLoader().loadClass(CLIENT_MASTER_CLASSNAME);
-			Method main = masterClass.getMethod(CLIENT_MASTER_METHODNAME,new Class<?>[] { (new String[0]).getClass() });
+			Class<?> mainAppClass = Thread.currentThread().getContextClassLoader().loadClass(MAIN_APP_CLASSNAME);
+			Method main = mainAppClass.getMethod(MAIN_APP_METHODNAME,new Class<?>[] { (new String[0]).getClass() });
 			main.invoke(null, (Object)new String[]{});
 		}
 		catch(Exception e)

@@ -6,5 +6,6 @@ public interface WorldserverSessionAttributes
 	public static final String WORLD_ID = "world.id";
 	public static final String PLAYER_AUTH_TOKEN = "player.auth.token";
 	public static final String PLAYER_ACCT_ID = "player.acct.id";
+	public static final String PLAYER_CHAR_ID = "player.char.id";
 
 }

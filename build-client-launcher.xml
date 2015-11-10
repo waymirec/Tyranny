@@ -65,6 +65,7 @@
 					<attribute name="Main-Class" value="net.waymire.tyranny.client.launcher.Launcher" />
 				</manifest>
 				<fileset dir="${tyranny.client.launcher.build.dir}" />
+				<fileset dir="${tyranny.client.launcher.src.java.dir}" includes="**/*.fxml"/>
 			</tyranny_jar>
 		</sequential>
 	</macrodef>	

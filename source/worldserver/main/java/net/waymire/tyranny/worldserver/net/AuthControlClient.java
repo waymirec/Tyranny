@@ -117,7 +117,13 @@ public class AuthControlClient implements TcpClient, AutoInitializable
 	@MessageProcessor(topic=MessageTopics.AUTHCONTROL_CLIENT_DISCONNECTED)
 	private void onAuthControlClientDisconnected(Message message)
 	{
+		if(registry.isRunning())
+		{
+			registry.stop();
+		}
+
 		sessionMonitor.remove((TcpSession)message.getSource());
+		try { Thread.sleep(3000); } catch(InterruptedException ie) { }
 		this.connect(endpoint);
 	}
 	
@@ -125,6 +131,11 @@ public class AuthControlClient implements TcpClient, AutoInitializable
 	@MessageProcessor(topic=MessageTopics.AUTHCONTROL_CLIENT_CONNECTION_FAILED)
 	private void onAuthControlClientConnectFailed(Message message)
 	{
+		if(registry.isRunning())
+		{
+			registry.stop();
+		}
+
 		try { Thread.sleep(15000); } catch(InterruptedException ie) { }
 		this.connect(endpoint);
 	}
@@ -144,8 +155,8 @@ public class AuthControlClient implements TcpClient, AutoInitializable
 			connecting.setProperty(MessageProperties.SERVER_ADDRESS, serverAddress);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(connecting);
 			
-			endpoint = serverAddress;
 			registry.start();
+			endpoint = serverAddress;
 			tcpClient.connect(serverAddress);
 		}
 		else
@@ -180,8 +191,8 @@ public class AuthControlClient implements TcpClient, AutoInitializable
 			disconnecting.setProperty(MessageProperties.SERVER_ADDRESS, this.endpoint);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(disconnecting);
 			
-			tcpClient.disconnect();
 			registry.stop();
+			tcpClient.disconnect();
 		}
 		else
 		{
@@ -225,6 +236,11 @@ public class AuthControlClient implements TcpClient, AutoInitializable
 	{
 		MessageManager messageManager = AppRegistry.getInstance().retrieve(MessageManager.class);
 		messageManager.unload(this);
+		
+		if(registry.isRunning())
+		{
+			registry.stop();
+		}
 	}
 
 	private TcpSessionMonitor initSessionMonitor()

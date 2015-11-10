@@ -20,8 +20,10 @@ public class PlayerInputActionListener extends AbstractAppState implements Actio
 	private boolean rightward = false;
 	private boolean forward = false;
 	private boolean backward = false;
+	private boolean run = false;
 	private boolean jump = false;
 	private boolean strafe = false;
+	private boolean attack = false;
 	
 	public PlayerInputActionListener(PhysicsCharacter physicBody, Spatial avatar)
 	{
@@ -65,6 +67,12 @@ public class PlayerInputActionListener extends AbstractAppState implements Actio
 			case PlayerInputConstants.MOVE_STRAFE:
 			{
 				this.strafe = keyPressed;
+				break;
+			}
+			case PlayerInputConstants.MOVE_RUN:
+			{
+				this.run = true;
+				break;
 			}
 			case PlayerInputConstants.MOVE_LEFT:
 			{
@@ -89,6 +97,11 @@ public class PlayerInputActionListener extends AbstractAppState implements Actio
 			case PlayerInputConstants.MOVE_JUMP:
 			{
 				this.jump = this.avatarAnimEventListener.getAnimHelper().jump(keyPressed);
+				break;
+			}
+			case PlayerInputConstants.ACTION_SHOOT:
+			{
+				this.attack = this.avatarAnimEventListener.getAnimHelper().attack(keyPressed);
 				break;
 			}
 		}
@@ -119,8 +132,18 @@ public class PlayerInputActionListener extends AbstractAppState implements Actio
         return this.backward;
     }
 	
+	public boolean isRunning()
+	{
+		return this.run;
+	}
+	
 	public boolean isJump()
     {
         return this.jump;
     }
+	
+	public boolean isAttacking()
+	{
+		return this.attack;
+	}
 }

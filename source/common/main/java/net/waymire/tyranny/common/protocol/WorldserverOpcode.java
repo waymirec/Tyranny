@@ -8,8 +8,29 @@ public enum WorldserverOpcode implements Opcode {
 	NULL(0),
 	PING(1),
 	PONG(2),
-	AUTH(10),
-	AUTH_RESULT(11)
+	IDENT(10),
+	IDENT_RESULT(11),
+	
+	CHAR_LIST_REQ(20),
+	CHAR_LIST(21),
+	CHAR_ADD(22),
+	CHAR_ADD_ACK(23),
+	CHAR_ADD_NACK(24),
+	CHAR_DEL(25),
+	CHAR_DEL_ACK(26),
+	CHAR_DEL_NACK(27),
+
+	ENTER_WORLD_REQ(30),
+	ENTER_WORLD(31),
+	
+	PLAYER_MOVE_STRAFE(100),
+	PLAYER_MOVE_FORWARD(101),
+	PLAYER_MOVE_BACKWARD(102),
+	PLAYER_MOVE_LEFT(103),
+	PLAYER_MOVE_RIGHT(104),
+	PLAYER_MOVE_ROTATE_LEFT(105),
+	PLAYER_MOVE_ROTATE_RIGHT(106),
+	PLAYER_MOVE_JUMP(107),
 	;
 	
 	private static final Map<Integer,WorldserverOpcode> lookup =  new HashMap<Integer,WorldserverOpcode>();

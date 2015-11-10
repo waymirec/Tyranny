@@ -11,7 +11,8 @@ import com.jme3.scene.Spatial;
 
 public class AvatarAnimationEventListener extends AbstractAppState implements AnimEventListener 
 {
-	private final AnimChannel channel;
+	private final AnimChannel baseAnimChannel;
+	private final AnimChannel topAnimChannel;
 	private final AnimControl control;
 	@SuppressWarnings("unused")
 	private final PlayerInputActionListener playerInputActionListener;
@@ -23,16 +24,18 @@ public class AvatarAnimationEventListener extends AbstractAppState implements An
 		this.playerInputActionListener = playerInputActionListener;
 		this.control = avatarMesh.getControl(AnimControl.class);
 		assert(this.control != null);
-		this.channel = this.control.createChannel();
+		this.baseAnimChannel = this.control.createChannel();
+		this.topAnimChannel = this.control.createChannel();
+		
 		this.physicBody = physicBody;
-		this.animHelper = new AvatarAnimationHelper(this.physicBody, this.channel);
+		this.animHelper = new AvatarAnimationHelper(this.physicBody, this.baseAnimChannel, this.topAnimChannel);
 	}
 	
 	public void initialize(AppStateManager stateManager, Application app)
 	{
 		this.control.addListener(this);
-		this.channel.setAnim("stand");
-		this.channel.setSpeed(0.5f);
+		this.baseAnimChannel.setAnim("IdleBase");
+		this.topAnimChannel.setAnim("IdleTop");
 	}
 	
 	@Override
@@ -47,9 +50,14 @@ public class AvatarAnimationEventListener extends AbstractAppState implements An
 
 	}
 
-	protected AnimChannel getChannel()
+	protected AnimChannel getBaseAnimationChannel()
 	{
-		return channel;
+		return baseAnimChannel;
+	}
+
+	protected AnimChannel getTopAnimationChannel()
+	{
+		return topAnimChannel;
 	}
 	
 	protected AnimControl getControl()

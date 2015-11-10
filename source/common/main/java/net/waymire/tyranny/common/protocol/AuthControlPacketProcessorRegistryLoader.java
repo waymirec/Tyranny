@@ -20,7 +20,11 @@ public class AuthControlPacketProcessorRegistryLoader extends ProtocolProcessorR
 		{
 			Class<?> clazz = Class.forName(result.getClassName());
 			AuthControlOpcode opcode = AuthControlOpcode.valueOf((String)result.getMember("opcode"));
-			ProtocolProcessor<TcpSession,AuthControlPacket> delegate = new AuthControlPacketProcessorDelegate(clazz,result.getTargetName());
+			ProtocolProcessor<TcpSession,AuthControlPacket> delegate = new ProtocolProcessorDelegate<TcpSession,AuthControlPacket>(clazz,result.getTargetName(), new Class<?>[] { TcpSession.class,AuthControlPacket.class });
+			if(LogHelper.isDebugEnabled(this))
+			{
+				LogHelper.debug(this,  "Registering packet handler [{0}.{1}] for opcode [{2}].", result.getClassName(),result.getTargetName(), opcode);
+			}
 			registry.register(opcode, delegate);
 		}
 		catch(Exception e)

@@ -102,6 +102,12 @@ public class IpProtocolProcessorRegistry<S extends IpSession, P extends Packet<?
 	}
 	
 	@Override
+	public boolean isRunning()
+	{
+		//TODO: implement this
+		return true;
+	}
+	@Override
 	public void register(Opcode opcode,ProtocolProcessor<S,P> processor)
 	{
 		lock.writeLock().lock();

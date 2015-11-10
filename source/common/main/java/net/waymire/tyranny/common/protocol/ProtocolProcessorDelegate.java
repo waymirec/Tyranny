@@ -14,11 +14,21 @@ public class ProtocolProcessorDelegate<T,P extends Packet<? extends Opcode>> ext
 	public ProtocolProcessorDelegate(Object source,String methodName) {
 		super(source,methodName,argTypes);
 	}
+
+	public ProtocolProcessorDelegate(Object source, String methodName, Class<P> clazz)
+	{
+		super(source,methodName, new Class<?>[] { TcpSession.class,clazz });
+	}
 	
 	public ProtocolProcessorDelegate(Object source,Method method) {
 		super(source,method,argTypes);
 	}
 	
+	public ProtocolProcessorDelegate(Object source, Method method, Class<P> clazz)
+	{
+		super(source,method, new Class<?>[]{TcpSession.class, clazz});
+	}
+		
 	protected ProtocolProcessorDelegate(Object source,String methodName, Class<?>[] argTypes)
 	{
 		super(source,methodName,argTypes);

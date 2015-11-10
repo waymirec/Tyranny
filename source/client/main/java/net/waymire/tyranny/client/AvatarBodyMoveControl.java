@@ -36,55 +36,41 @@ public class AvatarBodyMoveControl extends AbstractControl
 
 	public void correctDirectionVectors(float tpf)
 	{
-		Vector3f viewDir = spatial.getControl(BetterCharacterControl.class).getViewDirection().normalize();
-		Vector3f leftDir = AvatarConstants.YAW090.mult(viewDir).normalize();
-		viewDir.y = 0;
+		Vector3f viewDir = spatial.getControl(BetterCharacterControl.class).getViewDirection().clone().normalize();
 		
-		//Affect forward, backward move speed 0.6f lower - 1.0f faster
-		//Vector3f camDirVector = cam.getDirection().clone().multLocal(AvatarConstants.FORWARD_MOVE_SPEED);
-		
-		//Affect left, right move speed 0.6f lower - 1.0f faster
-		//Vector3f camLeftVector = cam.getLeft().clone().multLocal(AvatarConstants.SIDEWARD_MOVE_SPEED);
-		
-		walkDirection.set(0, 0, 0); //critical
+		if(physicBody.onGround())
+		{
+			walkDirection.set(Vector3f.ZERO);
+		}
+		//walkDirection.set(0, 0, 0); //critical
 
 		if(playerInputActionListener.isLeftward())
 		{
-			if(playerInputActionListener.isStrafing())
-			{
-				//walkDirection.addLocal(leftDir.mult(0.2f));
-				//walkDirection.multLocal(AvatarConstants.MOVE_STRAFE_SPEED);
-			}
-			else
-			{
-				AvatarConstants.ROT_LEFT.multLocal(viewDir);
-			}
+			AvatarConstants.ROT_LEFT.multLocal(viewDir);
 		}
 		if(playerInputActionListener.isRightward())
 		{
-			if(playerInputActionListener.isStrafing())
-			{
-				//walkDirection.addLocal(leftDir.negate().mult(0.2f));
-				//walkDirection.multLocal(AvatarConstants.MOVE_STRAFE_SPEED);
-			}
-			else
-			{
-				AvatarConstants.ROT_RIGHT.multLocal(viewDir);
-			}
+			AvatarConstants.ROT_RIGHT.multLocal(viewDir);
 		}
 		if(playerInputActionListener.isForward())
 		{
-			walkDirection.addLocal(viewDir.mult(0.2f));
-			walkDirection.multLocal(AvatarConstants.MOVE_WALK_SPEED);
+			if (physicBody.onGround())
+			{
+				walkDirection.addLocal(viewDir);
+				float speed = playerInputActionListener.isRunning() ? AvatarConstants.MOVE_RUN_SPEED : AvatarConstants.MOVE_WALK_SPEED;
+				walkDirection.multLocal(speed);
+			}
 		}
 		if(playerInputActionListener.isBackward())
 		{
-			walkDirection.addLocal(viewDir.negate().mult(0.1f));
-			walkDirection.multLocal(AvatarConstants.MOVE_BACKWARD_SPEED);
+			if(physicBody.onGround())
+			{
+				walkDirection.addLocal(viewDir.negate());
+				walkDirection.multLocal(AvatarConstants.MOVE_BACKWARD_SPEED);	
+			}
 		}
-		viewDir.multLocal(tpf);
+		//viewDir.multLocal(tpf);
 		spatial.getControl(BetterCharacterControl.class).setViewDirection(viewDir);
-
 		physicBody.setWalkDirection(walkDirection); //Critical
 		
 		//Avoid vibration

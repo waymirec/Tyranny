@@ -24,7 +24,10 @@ abstract public class PacketDecoder extends CumulativeProtocolDecoder
 				Packet<? extends Opcode> packet = createPacket(bytes);
 				out.write(packet);
 			}
-			return !(in.remaining() > 0);
+			else
+			{
+				return false;
+			}
 		}
 		return false;
 	}

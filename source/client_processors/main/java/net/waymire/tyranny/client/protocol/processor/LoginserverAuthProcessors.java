@@ -11,14 +11,15 @@ import net.waymire.tyranny.common.delegate.DelegateImpl;
 import net.waymire.tyranny.common.logging.LogHelper;
 import net.waymire.tyranny.common.message.Message;
 import net.waymire.tyranny.common.message.MessageManager;
+import net.waymire.tyranny.common.message.MessagePriority;
 import net.waymire.tyranny.common.message.StandardMessage;
 import net.waymire.tyranny.common.net.TcpSession;
 import net.waymire.tyranny.common.protocol.LoginserverAuthOpcode;
 import net.waymire.tyranny.common.protocol.LoginserverAuthResult;
 import net.waymire.tyranny.common.protocol.LoginserverOpcode;
 import net.waymire.tyranny.common.protocol.LoginserverPacket;
-import net.waymire.tyranny.common.protocol.LoginserverPacketProcessorDelegate;
 import net.waymire.tyranny.common.protocol.LoginserverProtocolProcessor;
+import net.waymire.tyranny.common.protocol.ProtocolProcessorDelegate;
 import net.waymire.tyranny.common.util.ExceptionUtil;
 
 public class LoginserverAuthProcessors 
@@ -27,8 +28,8 @@ public class LoginserverAuthProcessors
 	
 	static
 	{
-		delegates.put(LoginserverAuthOpcode.CHAP_CHALLENGE, new LoginserverPacketProcessorDelegate(LoginserverAuthProcessors.class, "handleChapChallenge"));
-		delegates.put(LoginserverAuthOpcode.CHAP_RESPONSE,  new LoginserverPacketProcessorDelegate(LoginserverAuthProcessors.class, "handleChapResponse"));
+		delegates.put(LoginserverAuthOpcode.CHAP_CHALLENGE, new ProtocolProcessorDelegate<TcpSession,LoginserverPacket>(LoginserverAuthProcessors.class, "handleChapChallenge", LoginserverPacket.class));
+		delegates.put(LoginserverAuthOpcode.CHAP_RESPONSE,  new ProtocolProcessorDelegate<TcpSession,LoginserverPacket>(LoginserverAuthProcessors.class, "handleChapResponse", LoginserverPacket.class));
 	}
 	
 	@LoginserverProtocolProcessor(opcode=LoginserverOpcode.AUTH)
@@ -58,6 +59,7 @@ public class LoginserverAuthProcessors
 			packet.get(challenge);
 			Message message = new StandardMessage(session,MessageTopics.LOGINSERVER_AUTH_CHALLENGE);
 			message.setProperty(MessageProperties.LOGINSERVER_AUTH_CHALLENGE_BYTES, challenge);
+			message.setPriority(MessagePriority.URGENT);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(message);
 		}
 		catch (Exception e)
@@ -65,6 +67,7 @@ public class LoginserverAuthProcessors
 			Message authenticated = new StandardMessage(session, MessageTopics.LOGINSERVER_CLIENT_AUTH_FAILED);
 			authenticated.setProperty(MessageProperties.LOGINSERVER_AUTH_FAIL_REASON, LoginserverAuthResult.UNEXPECTED_ERROR);
 			authenticated.setProperty(MessageProperties.LOGINSERVER_AUTH_FAIL_DETAILS, ExceptionUtil.getStackTrace(e));
+			authenticated.setPriority(MessagePriority.URGENT);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(authenticated);
 			e.printStackTrace();
 		}
@@ -78,6 +81,7 @@ public class LoginserverAuthProcessors
 			boolean response = packet.getBoolean();			
 			Message message = new StandardMessage(session,MessageTopics.LOGINSERVER_AUTH_RESPONSE);
 			message.setProperty(MessageProperties.LOGINSERVER_AUTH_RESPONSE,response);
+			message.setPriority(MessagePriority.URGENT);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(message);
 		} 
 		catch (Exception e) 
@@ -85,6 +89,7 @@ public class LoginserverAuthProcessors
 			Message authenticated = new StandardMessage(session, MessageTopics.LOGINSERVER_CLIENT_AUTH_FAILED);
 			authenticated.setProperty(MessageProperties.LOGINSERVER_AUTH_FAIL_REASON, LoginserverAuthResult.UNEXPECTED_ERROR);
 			authenticated.setProperty(MessageProperties.LOGINSERVER_AUTH_FAIL_DETAILS, ExceptionUtil.getStackTrace(e));
+			authenticated.setPriority(MessagePriority.URGENT);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(authenticated);
 			e.printStackTrace();
 		}
@@ -97,12 +102,14 @@ public class LoginserverAuthProcessors
 		if(result == LoginserverAuthResult.READY)
 		{
 			Message authenticated = new StandardMessage(session, MessageTopics.LOGINSERVER_CLIENT_AUTH_SUCCESS);
+			authenticated.setPriority(MessagePriority.URGENT);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(authenticated);
 		}
 		else
 		{
 			Message authenticated = new StandardMessage(session, MessageTopics.LOGINSERVER_CLIENT_AUTH_FAILED);
 			authenticated.setProperty(MessageProperties.LOGINSERVER_AUTH_FAIL_REASON, result);
+			authenticated.setPriority(MessagePriority.URGENT);
 			AppRegistry.getInstance().retrieve(MessageManager.class).publish(authenticated);
 		}
 	}

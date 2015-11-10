@@ -8,7 +8,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.mina.core.session.IoSession;
 
+import net.waymire.tyranny.common.GUID;
 import net.waymire.tyranny.common.net.IpSession;
+import net.waymire.tyranny.common.net.IpSessionAttributes;
 import net.waymire.tyranny.common.protocol.Packet;
 
 public abstract class MinaIpSession implements IpSession
@@ -16,11 +18,17 @@ public abstract class MinaIpSession implements IpSession
 	protected final WeakReference<IoSession> ioSession;
 	protected final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	
+	protected final GUID guid;
 	protected boolean authenticated = false;
 	
 	public MinaIpSession(IoSession session)
 	{
 		this.ioSession = new WeakReference<IoSession>(session);
+		if(session.getAttribute(IpSessionAttributes.GUID) == null)
+		{
+			session.setAttribute(IpSessionAttributes.GUID, GUID.generate());
+		}
+		this.guid = (GUID)session.getAttribute(IpSessionAttributes.GUID);
 	}
 	
 	public IoSession getIoSession()
@@ -93,16 +101,12 @@ public abstract class MinaIpSession implements IpSession
 	}
 	
 	@Override
-	public long getId()
+	public GUID getId()
 	{
 		lock.readLock().lock();
 		try
 		{
-			if(isValid())
-			{
-				return ioSession.get().getId();
-			}
-			return -1;
+			return guid;
 		}
 		finally
 		{
@@ -128,6 +132,24 @@ public abstract class MinaIpSession implements IpSession
 		}
 	}
 
+	@Override
+	public SocketAddress getLocalAddress()
+	{
+		lock.readLock().lock();
+		try
+		{
+			if(isValid())
+			{
+				return ioSession.get().getLocalAddress();
+			}
+			return null;
+		}
+		finally
+		{
+			lock.readLock().unlock();
+		}
+	}
+	
 	@Override
 	public void setAuthenticated(boolean authenticated)
 	{
@@ -310,7 +332,8 @@ public abstract class MinaIpSession implements IpSession
 			{
 				if(isValid())
 				{
-					return (ioSession.get().getId() == ((MinaTcpSession)other).getId());
+					
+					return (guid == ((MinaTcpSession)other).getId());
 				}
 			}
 			return false;

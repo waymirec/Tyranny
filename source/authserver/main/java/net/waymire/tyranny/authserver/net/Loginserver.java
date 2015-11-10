@@ -7,10 +7,13 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import net.waymire.tyranny.authserver.AuthserverEnvironment;
+import net.waymire.tyranny.authserver.WorldSessionManager;
+import net.waymire.tyranny.authserver.message.MessageProperties;
 import net.waymire.tyranny.authserver.message.MessageTopics;
 import net.waymire.tyranny.authserver.configuration.AuthConfigKey;
 import net.waymire.tyranny.authserver.configuration.AuthserverConfig;
 import net.waymire.tyranny.common.AppRegistry;
+import net.waymire.tyranny.common.GUID;
 import net.waymire.tyranny.common.annotation.LockField;
 import net.waymire.tyranny.common.annotation.Locked;
 import net.waymire.tyranny.common.annotation.Locked.LockMode;
@@ -30,11 +33,14 @@ import net.waymire.tyranny.common.net.TcpServer;
 import net.waymire.tyranny.common.net.TcpServerHandler;
 import net.waymire.tyranny.common.net.TcpSession;
 import net.waymire.tyranny.common.net.TcpSessionMonitor;
+import net.waymire.tyranny.common.protocol.AuthControlOpcode;
+import net.waymire.tyranny.common.protocol.AuthControlPacket;
 import net.waymire.tyranny.common.protocol.LoginserverPacket;
 import net.waymire.tyranny.common.protocol.LoginserverPacketProcessorRegistryLoader;
 import net.waymire.tyranny.common.protocol.LoginserverProtocolProcessor;
 import net.waymire.tyranny.common.protocol.ProtocolHandler;
 import net.waymire.tyranny.common.protocol.TcpProtocolProcessorRegistry;
+import net.waymire.tyranny.common.util.InetAddressUtil;
 
 @Autoload(priority=105)
 public class Loginserver implements TcpServer, AutoInitializable
@@ -152,7 +158,16 @@ public class Loginserver implements TcpServer, AutoInitializable
 	@MessageProcessor(topic=MessageTopics.LOGINSERVER_CLIENT_AUTHENTICATED)
 	private void onClientAuthenticatedMessage(Message message)
 	{
-		sessionMonitor.add((TcpSession)message.getSource());
+		TcpSession session = (TcpSession)message.getSource();
+		sessionMonitor.add(session);
+		
+		GUID accountId = (GUID)message.getProperty(MessageProperties.LOGINSERVER_CLIENT_ACCOUNT_ID);
+		AuthControlPacket tokenReq = new AuthControlPacket(AuthControlOpcode.PLAYER_IDENT_TOKEN_REQ);
+		tokenReq.putLong(accountId.getMostSignificantBits());
+		tokenReq.putLong(accountId.getLeastSignificantBits());
+		tokenReq.putLong(InetAddressUtil.inet2Long(((InetSocketAddress)session.getRemoteAddress()).getAddress()));
+		tokenReq.prepare();
+		AppRegistry.getInstance().retrieve(WorldSessionManager.class).getAvailableWorldSession().send(tokenReq);
 	}
 	
 	@MessageProcessor(topic=MessageTopics.LOGINSERVER_CLIENT_DISCONNECTED)

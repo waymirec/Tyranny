@@ -17,11 +17,6 @@ public interface MessageTopics
 	
 	public static final String LOGINSERVER_CLIENT_SESSION_IDLE = "loginserver.client.session.idle";
 	
-	public static final String LOGINSERVER_CLIENT_STARTING = "loginserver.client.starting";
-	public static final String LOGINSERVER_CLIENT_STARTED = "loginserver.client.started";
-	public static final String LOGINSERVER_CLIENT_STOPPING = "loginserver.client.stopping";
-	public static final String LOGINSERVER_CLIENT_STOPPED = "loginserver.client.stopped";
-
 	public static final String LOGINSERVER_CLIENT_LOGIN_REQUEST = "loginserver.client.login.request";
 	
 	public static final String SYSTEM_STARTING = "system.starting";
@@ -29,4 +24,21 @@ public interface MessageTopics
 	public static final String SYSTEM_STOPPING = "system.stopping";
 	public static final String SYSTEM_STOPPED = "system.stopped";
 
+	public static final String WORLDSERVER_CLIENT_IDENT_SUCCESS = "worldserver.client.ident.success";
+	public static final String WORLDSERVER_CLIENT_IDENT_FAILED = " worldserver.client.ident.failed";
+
+	public static final String WORLDSERVER_CLIENT_CONNECT = "worldserver.client.connect";
+	public static final String WORLDSERVER_CLIENT_CONNECTING = "worldserver.client.connecting";
+	public static final String WORLDSERVER_CLIENT_CONNECT_SUCCESS = "worldserver.client.connect.success";
+	public static final String WORLDSERVER_CLIENT_CONNECT_FAILED = "worldserver.client.connect.failed";
+	public static final String WORLDSERVER_CLIENT_DISCONNECTING = "worldserver.client.disconnecting";
+	public static final String WORLDSERVER_CLIENT_DISCONNECTED = "worldserver.client.disconnected";
+	
+	public static final String WORLDSERVER_CLIENT_SESSION_IDLE = "worldserver.client.session.idle";
+	
+	public static final String CHARACTER_SELECTION = "character.selection";
+	public static final String ENTER_WORLD = "enter.world";
+	
+	public static final String PLAYER_INPUT_MOVE = "player.input.move";
+	public static final String PLAYER_INPUT_ACTION = "player.input.action";
 }

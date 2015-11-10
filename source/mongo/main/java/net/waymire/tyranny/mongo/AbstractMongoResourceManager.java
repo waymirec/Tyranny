@@ -1,7 +1,6 @@
 package net.waymire.tyranny.mongo;
 
 import java.net.UnknownHostException;
-import java.util.Arrays;
 
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
@@ -14,7 +13,6 @@ import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
-import com.mongodb.MongoCredential;
 import com.mongodb.MongoException;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteConcern;
@@ -35,6 +33,7 @@ public abstract class AbstractMongoResourceManager implements MongoResourceManag
 	public AbstractMongoResourceManager()
 	{
 		this.morphia = new Morphia();
+		this.morphia.getMapper().getConverters().addConverter(new GUIDTypeConverter());
 	}
 	
 	public boolean isConnected()
