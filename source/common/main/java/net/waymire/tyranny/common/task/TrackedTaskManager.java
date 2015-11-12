@@ -77,7 +77,7 @@ public class TrackedTaskManager extends StandardTaskManager
 	@Override
 	protected TaskScheduler initScheduler()
 	{
-		TaskScheduler scheduler = new TrackedTaskScheduler(this.getCapacity(), new TaskThreadFactory());
+		TaskScheduler scheduler = new TrackedTaskScheduler(this.getCapacity(), new TaskThreadFactory("TaskManagerScheduler"));
 		return scheduler;
 	}
 	

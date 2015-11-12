@@ -12,7 +12,7 @@ public class StandardTaskScheduler implements TaskScheduler
 	
 	public StandardTaskScheduler(int capacity, ThreadFactory factory)
 	{
-		ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor)Executors.newScheduledThreadPool(capacity, new TaskThreadFactory());
+		ScheduledThreadPoolExecutor executor = (ScheduledThreadPoolExecutor)Executors.newScheduledThreadPool(capacity, factory);
 		executor.setContinueExistingPeriodicTasksAfterShutdownPolicy(false);
 		executor.setExecuteExistingDelayedTasksAfterShutdownPolicy(false);
 		executor.setRemoveOnCancelPolicy(true);

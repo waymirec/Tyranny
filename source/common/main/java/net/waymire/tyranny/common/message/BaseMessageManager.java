@@ -9,7 +9,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -20,10 +23,13 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import net.waymire.tyranny.common.delegate.Delegate;
 import net.waymire.tyranny.common.logging.LogHelper;
 import net.waymire.tyranny.common.util.ClassUtil;
+import net.waymire.tyranny.common.util.ExceptionUtil;
 
 abstract public class BaseMessageManager implements MessageManager, MessageStatistics
 {
 	private static final int DEFAULT_CAPACITY = 1000;
+	private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(new MessageThreadFactory("MessageManagerThread"));
+
 	private final Map<String,List<MessageListener>> listeners = new HashMap<String,List<MessageListener>>();
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();	
 	private final AtomicBoolean running = new AtomicBoolean(false);
@@ -32,8 +38,7 @@ abstract public class BaseMessageManager implements MessageManager, MessageStati
 	private BlockingQueue<Message> queue;
 	private int capacity;
 	
-	private Thread thread;
-	//private TaskFuture taskFuture;
+	private ScheduledFuture<?> monitorFuture;
 	
 	public BaseMessageManager(int capacity)
 	{
@@ -69,18 +74,10 @@ abstract public class BaseMessageManager implements MessageManager, MessageStati
 		{
 			LogHelper.info(this, "Message Manager ({0}) Starting...", this.getClass().getName());
 			queue = new PriorityBlockingQueue<Message>(capacity, new MessagePriorityComparator()); 
-			
-			Runnable r = initRunnable();
-			thread = new Thread(r);
-			
 			running.set(true);
-			thread.start();
-			/*
-			TaskManager taskManager = AppRegistry.getInstance().retrieve(TaskManager.class);
-			Task task = initTask();
-			taskFuture = taskManager.scheduleWithFixedDelay(task, 100, 100, TimeUnit.MILLISECONDS);
-			running.set(true);
-			*/
+			
+			Runnable runnable = initRunnable();
+    		monitorFuture = executor.scheduleWithFixedDelay(runnable, 50, 500, TimeUnit.MILLISECONDS);
 			LogHelper.info(this, "Message Manager ({0}) Started.", this.getClass().getName());
 		}
 		finally
@@ -97,16 +94,15 @@ abstract public class BaseMessageManager implements MessageManager, MessageStati
 		{
 			LogHelper.info(this, "Stopping Message Manager ({0})...", this.getClass().getName());
 			running.set(false);
-			//AppRegistry.getInstance().retrieve(TaskManager.class).cancel(taskFuture);
-			thread.interrupt();
-			try
-			{
-				thread.join(1500);
-			}
-			catch(InterruptedException interrupted)
-			{
-				LogHelper.warning(this, "Timeout Waiting for [{0}] Thread To Exit.", this.getClass().getName());
-			}
+			monitorFuture.cancel(true);
+    		try {
+    			monitorFuture.get();
+    		}
+    		catch(Exception exception)
+    		{
+    			LogHelper.warning(this, "Exception Waiting for [%s] Thread To Exit.", this.getClass().getName());
+    			LogHelper.warning(this,  ExceptionUtil.getStackTrace(exception));
+    		}
 			
 			listeners.clear();
 			queue.clear();
@@ -510,7 +506,7 @@ abstract public class BaseMessageManager implements MessageManager, MessageStati
 			@Override
 			public void run()
 			{
-				while(running.get())
+				if(running.get())
 				{
 					try
 					{
@@ -531,29 +527,4 @@ abstract public class BaseMessageManager implements MessageManager, MessageStati
 		};
 		return r;
 	}
-	
-	/*
-	private Task initTask()
-	{
-		Task task = new StandardTask() {
-			public void execute()
-			{
-				try 
-				{
-					Message message = queue.poll(500, TimeUnit.MILLISECONDS);
-					while(message != null)
-					{
-						process(message);
-						message = queue.poll(10, TimeUnit.MILLISECONDS);
-					}
-				} 
-				catch(InterruptedException ie) 
-				{
-				}				
-			}
-		 };
-		 task.setName(String.format("MessageManager[%s]",this.getClass().getName()));
-		 return task;
-	}
-	*/
 }

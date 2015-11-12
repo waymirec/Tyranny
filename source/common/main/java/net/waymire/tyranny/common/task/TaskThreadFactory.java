@@ -5,31 +5,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class TaskThreadFactory implements ThreadFactory
 {
-	static final AtomicInteger poolNumber = new AtomicInteger(1);
+	private static final AtomicInteger THREAD_NUMBER = new AtomicInteger(1);
 	final ThreadGroup group;
-	final AtomicInteger threadNumber = new AtomicInteger(1);
 	final String namePrefix;
 	
-	public TaskThreadFactory()
+	public TaskThreadFactory(final String namePrefix)
 	{
-		SecurityManager s = System.getSecurityManager();
-        group = (s != null)? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
-        namePrefix = "pool-" + poolNumber.getAndIncrement() + "-task-";
+		final SecurityManager s = System.getSecurityManager();
+        this.group = (s != null)? s.getThreadGroup() : Thread.currentThread().getThreadGroup();
+        this.namePrefix = namePrefix;
 	}
 	
 	@Override
 	public Thread newThread(Runnable runnable)
 	{
-		String name = namePrefix + threadNumber.getAndIncrement();
+		String name = namePrefix + THREAD_NUMBER.getAndIncrement();
 		if(runnable instanceof Task)
 		{
 			name = ((Task)runnable).getName();
 		}
 		
 		Thread t = new Thread(group, runnable, name, 0);
-		if (t.isDaemon())
+		if (!t.isDaemon())
 		{
-			t.setDaemon(false);
+			t.setDaemon(true);
 		}
 		if (t.getPriority() != Thread.NORM_PRIORITY)
 		{

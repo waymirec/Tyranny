@@ -3,22 +3,27 @@ package net.waymire.tyranny.common.task;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import net.waymire.tyranny.common.logging.LogHelper;
 import net.waymire.tyranny.common.task.Task.IterationType;
+import net.waymire.tyranny.common.util.ExceptionUtil;
 
 public class StandardTaskManager implements TaskManager
 {	
 	public static final int DEFAULT_THREAD_COUNT = 200;
-	
+	private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(new TaskThreadFactory("StandardTaskManagerExecutor"));
+			
 	private final AtomicBoolean running = new AtomicBoolean(false);
 	private final List<TaskFuture> futures = new ArrayList<TaskFuture>();
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-	private Thread manager;
+	private ScheduledFuture<?> monitorFuture;
 	private int capacity;
 	private TaskScheduler scheduler;
 	
@@ -63,8 +68,8 @@ public class StandardTaskManager implements TaskManager
 			running.set(true);
 			
 			scheduler = initScheduler();
-			manager = initManagementThread();
-			manager.start();
+			Runnable runnable = initRunnable();
+    		monitorFuture = executor.scheduleWithFixedDelay(runnable, 10, 250, TimeUnit.MILLISECONDS);
 			
 			LogHelper.info(this, "Task Manager ({0}) Started.", this.getClass().getName());
 		}
@@ -94,7 +99,16 @@ public class StandardTaskManager implements TaskManager
 				cancel(future);
 			}
 			
-			manager.interrupt();
+			monitorFuture.cancel(true);
+    		try {
+    			monitorFuture.get();
+    		}
+    		catch(Exception exception)
+    		{
+    			LogHelper.warning(this, "Exception Waiting for [%s] Thread To Exit.", this.getClass().getName());
+    			LogHelper.warning(this,  ExceptionUtil.getStackTrace(exception));
+    		}
+    		
 			scheduler.shutdownNow();
 			futures.clear();
 			
@@ -204,7 +218,7 @@ public class StandardTaskManager implements TaskManager
 
 	protected TaskScheduler initScheduler()
 	{
-		TaskScheduler scheduler = new StandardTaskScheduler(capacity, new TaskThreadFactory());
+		TaskScheduler scheduler = new StandardTaskScheduler(capacity, new TaskThreadFactory("TaskManagerScheduler"));
 		return scheduler;
 	}
 	
@@ -218,37 +232,36 @@ public class StandardTaskManager implements TaskManager
 		return futures;
 	}
 	
-	private Thread initManagementThread()
-	{
-		Thread thread = new Thread()
-		{
-			@Override
-			public void run()
-			{
-				while(running.get())
-				{
-					lock.writeLock().lock();
-					try
-					{
-						for(Iterator<TaskFuture> it = futures.iterator(); it.hasNext(); )
-						{
-							TaskFuture future = it.next();
-							if(future == null || future.isDone())
-							{
-								it.remove();
-							}
-						}
-					}
-					finally
-					{
-						lock.writeLock().unlock();
-					}
-					try { Thread.sleep(250); } catch(InterruptedException interruptedException) { }
-				}
-			}
-		};
-		return thread;
-	}
+	private Runnable initRunnable()
+    {
+    	Runnable r = new Runnable()
+        {
+            @Override
+            public void run()
+            {
+            	if(running.get())
+                {
+                    lock.writeLock().lock();
+                    try
+                    {
+                        for(Iterator<TaskFuture> it = futures.iterator(); it.hasNext(); )
+                        {
+                            TaskFuture future = it.next();
+                            if(future == null || future.isDone() || future.isCancelled())
+                            {
+                                it.remove();
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        lock.writeLock().unlock();
+                    }
+                }
+            }
+        };
+        return r;
+    }
 	
 	private void logScheduling(Task task)
 	{
