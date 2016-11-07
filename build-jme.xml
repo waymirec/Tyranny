@@ -4,8 +4,8 @@
 	<!-- ============================== -->
 	<!-- Property Definitions           -->
 	<!-- ============================== -->
-	<property name="jme3.build.url" value="http://updates.jmonkeyengine.org/stable/3.0/engine"/>
-	<property name="jme3.build.name" value="jME3_2014-06-12.zip"/>
+        <property name="jme3.build.url" value="https://github.com/jMonkeyEngine/jmonkeyengine/releases/download/v3.1.0-beta1"/>
+        <property name="jme3.build.name" value="jME3.1-beta1.zip
 	<property name="jme3.tmp.dir" value="${tyranny.libs.dir}/jME3" />
 
 	<macrodef name="retrieve_jme3">
